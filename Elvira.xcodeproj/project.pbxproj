@@ -1,0 +1,458 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		6827164F154DAE2A00558E25 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6827164E154DAE2A00558E25 /* UIKit.framework */; };
+		68271651154DAE2A00558E25 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 68271650154DAE2A00558E25 /* Foundation.framework */; };
+		68271653154DAE2A00558E25 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 68271652154DAE2A00558E25 /* CoreGraphics.framework */; };
+		68271659154DAE2A00558E25 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 68271657154DAE2A00558E25 /* InfoPlist.strings */; };
+		6827165B154DAE2B00558E25 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 6827165A154DAE2A00558E25 /* main.m */; };
+		6827165F154DAE2B00558E25 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 6827165E154DAE2B00558E25 /* AppDelegate.m */; };
+		68271662154DAE2B00558E25 /* MainStoryboard_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 68271660154DAE2B00558E25 /* MainStoryboard_iPhone.storyboard */; };
+		68271665154DAE2B00558E25 /* MainStoryboard_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 68271663154DAE2B00558E25 /* MainStoryboard_iPad.storyboard */; };
+		68271668154DAE2B00558E25 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 68271667154DAE2B00558E25 /* ViewController.m */; };
+		68271670154DAE2B00558E25 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6827166F154DAE2B00558E25 /* SenTestingKit.framework */; };
+		68271671154DAE2B00558E25 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6827164E154DAE2A00558E25 /* UIKit.framework */; };
+		68271672154DAE2B00558E25 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 68271650154DAE2A00558E25 /* Foundation.framework */; };
+		6827167A154DAE2B00558E25 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 68271678154DAE2B00558E25 /* InfoPlist.strings */; };
+		6827167D154DAE2B00558E25 /* ElviraTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 6827167C154DAE2B00558E25 /* ElviraTests.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		68271673154DAE2B00558E25 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 68271641154DAE2A00558E25 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 68271649154DAE2A00558E25;
+			remoteInfo = Elvira;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		6827164A154DAE2A00558E25 /* Elvira.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Elvira.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6827164E154DAE2A00558E25 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		68271650154DAE2A00558E25 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		68271652154DAE2A00558E25 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		68271656154DAE2A00558E25 /* Elvira-Info.plist */ = {isa = PBXFileReference; path = "Elvira-Info.plist"; sourceTree = "<group>"; };
+		68271658154DAE2A00558E25 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		6827165A154DAE2A00558E25 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		6827165C154DAE2B00558E25 /* Elvira-Prefix.pch */ = {isa = PBXFileReference; path = "Elvira-Prefix.pch"; sourceTree = "<group>"; };
+		6827165D154DAE2B00558E25 /* AppDelegate.h */ = {isa = PBXFileReference; path = AppDelegate.h; sourceTree = "<group>"; };
+		6827165E154DAE2B00558E25 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		68271661154DAE2B00558E25 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPhone.storyboard; sourceTree = "<group>"; };
+		68271664154DAE2B00558E25 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
+		68271666154DAE2B00558E25 /* ViewController.h */ = {isa = PBXFileReference; path = ViewController.h; sourceTree = "<group>"; };
+		68271667154DAE2B00558E25 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		6827166E154DAE2B00558E25 /* ElviraTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ElviraTests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6827166F154DAE2B00558E25 /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
+		68271677154DAE2B00558E25 /* ElviraTests-Info.plist */ = {isa = PBXFileReference; path = "ElviraTests-Info.plist"; sourceTree = "<group>"; };
+		68271679154DAE2B00558E25 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		6827167B154DAE2B00558E25 /* ElviraTests.h */ = {isa = PBXFileReference; path = ElviraTests.h; sourceTree = "<group>"; };
+		6827167C154DAE2B00558E25 /* ElviraTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ElviraTests.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		68271647154DAE2A00558E25 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6827164F154DAE2A00558E25 /* UIKit.framework in Frameworks */,
+				68271651154DAE2A00558E25 /* Foundation.framework in Frameworks */,
+				68271653154DAE2A00558E25 /* CoreGraphics.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6827166A154DAE2B00558E25 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				68271670154DAE2B00558E25 /* SenTestingKit.framework in Frameworks */,
+				68271671154DAE2B00558E25 /* UIKit.framework in Frameworks */,
+				68271672154DAE2B00558E25 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		6827163F154DAE2A00558E25 = {
+			isa = PBXGroup;
+			children = (
+				68271654154DAE2A00558E25 /* Elvira */,
+				68271675154DAE2B00558E25 /* ElviraTests */,
+				6827164D154DAE2A00558E25 /* Frameworks */,
+				6827164B154DAE2A00558E25 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		6827164B154DAE2A00558E25 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6827164A154DAE2A00558E25 /* Elvira.app */,
+				6827166E154DAE2B00558E25 /* ElviraTests.octest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6827164D154DAE2A00558E25 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6827164E154DAE2A00558E25 /* UIKit.framework */,
+				68271650154DAE2A00558E25 /* Foundation.framework */,
+				68271652154DAE2A00558E25 /* CoreGraphics.framework */,
+				6827166F154DAE2B00558E25 /* SenTestingKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		68271654154DAE2A00558E25 /* Elvira */ = {
+			isa = PBXGroup;
+			children = (
+				6827165D154DAE2B00558E25 /* AppDelegate.h */,
+				6827165E154DAE2B00558E25 /* AppDelegate.m */,
+				68271660154DAE2B00558E25 /* MainStoryboard_iPhone.storyboard */,
+				68271663154DAE2B00558E25 /* MainStoryboard_iPad.storyboard */,
+				68271666154DAE2B00558E25 /* ViewController.h */,
+				68271667154DAE2B00558E25 /* ViewController.m */,
+				68271655154DAE2A00558E25 /* Supporting Files */,
+			);
+			path = Elvira;
+			sourceTree = "<group>";
+		};
+		68271655154DAE2A00558E25 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				68271656154DAE2A00558E25 /* Elvira-Info.plist */,
+				68271657154DAE2A00558E25 /* InfoPlist.strings */,
+				6827165A154DAE2A00558E25 /* main.m */,
+				6827165C154DAE2B00558E25 /* Elvira-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		68271675154DAE2B00558E25 /* ElviraTests */ = {
+			isa = PBXGroup;
+			children = (
+				6827167B154DAE2B00558E25 /* ElviraTests.h */,
+				6827167C154DAE2B00558E25 /* ElviraTests.m */,
+				68271676154DAE2B00558E25 /* Supporting Files */,
+			);
+			path = ElviraTests;
+			sourceTree = "<group>";
+		};
+		68271676154DAE2B00558E25 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				68271677154DAE2B00558E25 /* ElviraTests-Info.plist */,
+				68271678154DAE2B00558E25 /* InfoPlist.strings */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		68271649154DAE2A00558E25 /* Elvira */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 68271680154DAE2B00558E25 /* Build configuration list for PBXNativeTarget "Elvira" */;
+			buildPhases = (
+				68271646154DAE2A00558E25 /* Sources */,
+				68271647154DAE2A00558E25 /* Frameworks */,
+				68271648154DAE2A00558E25 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Elvira;
+			productName = Elvira;
+			productReference = 6827164A154DAE2A00558E25 /* Elvira.app */;
+			productType = "com.apple.product-type.application";
+		};
+		6827166D154DAE2B00558E25 /* ElviraTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 68271683154DAE2B00558E25 /* Build configuration list for PBXNativeTarget "ElviraTests" */;
+			buildPhases = (
+				68271669154DAE2B00558E25 /* Sources */,
+				6827166A154DAE2B00558E25 /* Frameworks */,
+				6827166B154DAE2B00558E25 /* Resources */,
+				6827166C154DAE2B00558E25 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				68271674154DAE2B00558E25 /* PBXTargetDependency */,
+			);
+			name = ElviraTests;
+			productName = ElviraTests;
+			productReference = 6827166E154DAE2B00558E25 /* ElviraTests.octest */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		68271641154DAE2A00558E25 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0430;
+			};
+			buildConfigurationList = 68271644154DAE2A00558E25 /* Build configuration list for PBXProject "Elvira" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 6827163F154DAE2A00558E25;
+			productRefGroup = 6827164B154DAE2A00558E25 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				68271649154DAE2A00558E25 /* Elvira */,
+				6827166D154DAE2B00558E25 /* ElviraTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		68271648154DAE2A00558E25 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				68271659154DAE2A00558E25 /* InfoPlist.strings in Resources */,
+				68271662154DAE2B00558E25 /* MainStoryboard_iPhone.storyboard in Resources */,
+				68271665154DAE2B00558E25 /* MainStoryboard_iPad.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6827166B154DAE2B00558E25 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6827167A154DAE2B00558E25 /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		6827166C154DAE2B00558E25 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Run the unit tests in this test bundle.\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		68271646154DAE2A00558E25 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6827165B154DAE2B00558E25 /* main.m in Sources */,
+				6827165F154DAE2B00558E25 /* AppDelegate.m in Sources */,
+				68271668154DAE2B00558E25 /* ViewController.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		68271669154DAE2B00558E25 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6827167D154DAE2B00558E25 /* ElviraTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		68271674154DAE2B00558E25 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 68271649154DAE2A00558E25 /* Elvira */;
+			targetProxy = 68271673154DAE2B00558E25 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		68271657154DAE2A00558E25 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				68271658154DAE2A00558E25 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		68271660154DAE2B00558E25 /* MainStoryboard_iPhone.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				68271661154DAE2B00558E25 /* en */,
+			);
+			name = MainStoryboard_iPhone.storyboard;
+			sourceTree = "<group>";
+		};
+		68271663154DAE2B00558E25 /* MainStoryboard_iPad.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				68271664154DAE2B00558E25 /* en */,
+			);
+			name = MainStoryboard_iPad.storyboard;
+			sourceTree = "<group>";
+		};
+		68271678154DAE2B00558E25 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				68271679154DAE2B00558E25 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		6827167E154DAE2B00558E25 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		6827167F154DAE2B00558E25 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
+				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		68271681154DAE2B00558E25 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Elvira/Elvira-Prefix.pch";
+				INFOPLIST_FILE = "Elvira/Elvira-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		68271682154DAE2B00558E25 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Elvira/Elvira-Prefix.pch";
+				INFOPLIST_FILE = "Elvira/Elvira-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+		68271684154DAE2B00558E25 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/Elvira.app/Elvira";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SDKROOT)/Developer/Library/Frameworks",
+					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Elvira/Elvira-Prefix.pch";
+				INFOPLIST_FILE = "ElviraTests/ElviraTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Debug;
+		};
+		68271685154DAE2B00558E25 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/Elvira.app/Elvira";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SDKROOT)/Developer/Library/Frameworks",
+					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Elvira/Elvira-Prefix.pch";
+				INFOPLIST_FILE = "ElviraTests/ElviraTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		68271644154DAE2A00558E25 /* Build configuration list for PBXProject "Elvira" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6827167E154DAE2B00558E25 /* Debug */,
+				6827167F154DAE2B00558E25 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		68271680154DAE2B00558E25 /* Build configuration list for PBXNativeTarget "Elvira" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				68271681154DAE2B00558E25 /* Debug */,
+				68271682154DAE2B00558E25 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		68271683154DAE2B00558E25 /* Build configuration list for PBXNativeTarget "ElviraTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				68271684154DAE2B00558E25 /* Debug */,
+				68271685154DAE2B00558E25 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 68271641154DAE2A00558E25 /* Project object */;
+}
