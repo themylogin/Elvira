@@ -9,6 +9,8 @@
 #include <Foundation/Foundation.h>
 #include <AudioToolbox/AudioToolbox.h>
 
+#import "MusicFile.h"
+
 typedef enum {
     NotBuffered,
     Buffering,
@@ -37,29 +39,32 @@ struct AQPlayerState {
     NSFileManager* fileManager;
     NSString* documentsDir;
     
-    NSURLConnection* nowBufferingConnection;
-    NSString* nowBufferingFilename;
-    NSMutableData* nowBufferingData;
-    uint nowBufferingDataExpectedLength;
+    NSURLConnection*    nowBufferingConnection;
+    NSMutableData*      nowBufferingData;
+    uint                nowBufferingDataExpectedLength;
+    MusicFile*          nowBufferingFile;
+    
+    MusicFile*          nowPlayingFile;
     
     bool paused;
-    bool nowPlayingFile;
-        NSString* nowPlayingFileFilename;
-        NSMutableArray* nowPlayingFileLocatedIn;
-    bool nowPlayingBuffering;
+    
     struct AQPlayerState aqData;
+    
+    bool shouldBufferNextFileOnEndBuffering;
+    bool shouldPlayBufferedFileOnEndBuffering;
 }
 
 @property (nonatomic, retain) NSMutableArray* playlist;
 
 - (id)init;
-- (MusicState)getStateOfFile:(NSString*)filename locatedIn:(NSMutableArray*)cwd;
-- (float)getFileBufferingProgress:(NSString*)filename locatedIn:(NSMutableArray*)cwd;
+- (MusicState)getStateOfFile:(MusicFile*)file;
+- (float)getFileBufferingProgress:(MusicFile*)file;
 
-- (void)playFile:(NSString*)filename locatedIn:(NSMutableArray*)cwd;
-- (void)playNextFile;
+- (void)wantFile:(MusicFile*)file;
+- (void)wantNextFile;
 
-- (NSString*)fsFilenameFor:(NSString*)filename locatedIn:(NSMutableArray*)cwd;
-- (NSString*)libraryFilenameFor:(NSString*)filename locatedIn:(NSMutableArray*)cwd;
+- (MusicFile*)nextFileFor:(MusicFile*)file;
+- (NSString*)fsFilenameFor:(MusicFile*)file;
+- (NSString*)libraryFilenameFor:(MusicFile*)file;
 
 @end

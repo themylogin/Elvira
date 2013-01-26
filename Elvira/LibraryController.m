@@ -9,6 +9,8 @@
 #import "LibraryController.h"
 #import "QuartzCore/QuartzCore.h"
 
+#include "MusicFile.h"
+
 @interface LibraryController ()
 
 @end
@@ -188,7 +190,7 @@
     }
     else
     {
-        [mm playFile:[files objectAtIndex:indexPath.row - directories.count] locatedIn:cwd];
+        [mm wantFile:[[MusicFile alloc] initWithFilename:[files objectAtIndex:indexPath.row - directories.count] locatedIn:cwd]];
         mm.playlist = files;
     }
 }
@@ -205,10 +207,11 @@
     }
     else
     {
-        MusicState state = [mm getStateOfFile:[files objectAtIndex:indexPath.row - directories.count] locatedIn:cwd];
+        MusicFile* file = [[MusicFile alloc] initWithFilename:[files objectAtIndex:indexPath.row - directories.count] locatedIn:cwd];
+        MusicState state = [mm getStateOfFile:file];
         if (state == Buffering)
         {
-            float progress = [mm getFileBufferingProgress:[files objectAtIndex:indexPath.row - directories.count] locatedIn:cwd];
+            float progress = [mm getFileBufferingProgress:file];
             UIView* view = [[UIView alloc] initWithFrame:cell.contentView.bounds];
             CAGradientLayer* gradient = [CAGradientLayer layer];
             gradient.frame = view.bounds;
