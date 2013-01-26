@@ -7,7 +7,12 @@
 //
 
 #import <UIKit/UIKit.h>
+#include "MusicManager.h"
 
 @interface ViewController : UIViewController
+
+@property (nonatomic, retain) MusicManager* musicManager;
+
+- (void)reloadLibrary;
 
 @end
