@@ -33,6 +33,8 @@
     self.libraryNavigationController = [[UINavigationController alloc] initWithRootViewController:self.libraryController];
     [[self.libraryNavigationController view] setFrame:CGRectMake(0, 0, [[UIScreen mainScreen] bounds].size.width, [[UIScreen mainScreen] bounds].size.height - [[UIScreen mainScreen] bounds].size.width * 0.3)];
     [self.view addSubview:[self.libraryNavigationController view]];
+    
+    [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(updateTimer) userInfo:nil repeats:YES];
 }
 
 - (void)viewDidUnload
@@ -79,6 +81,20 @@
             }
         });
     });
+}
+
+- (void) updateTimer
+{
+    self.elapsed.text = [NSString stringWithFormat:@"%02d:%02d", (int)self.musicManager.elapsed / 60, (int)self.musicManager.elapsed % 60];
+    self.total.text = [NSString stringWithFormat:@"%02d:%02d", (int)self.musicManager.total / 60, (int)self.musicManager.total % 60];
+    
+    self.position.maximumValue = self.musicManager.total;
+    self.position.value = self.musicManager.elapsed;
+}
+
+- (IBAction) positionChanged:(UISlider*)sender
+{
+    [self.musicManager setPosition:sender.value];
 }
 
 @end

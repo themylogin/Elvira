@@ -31,6 +31,7 @@ struct AQPlayerState {
     UInt32                        mNumPacketsToRead;
     AudioStreamPacketDescription  *mPacketDescs;
     bool                          mIsRunning;
+    UInt64                        mPacketCount;
 };
 
 @interface MusicManager : NSObject
@@ -55,6 +56,9 @@ struct AQPlayerState {
 
 @property (nonatomic, retain) NSMutableArray* playlist;
 
+@property (nonatomic) Float64 total;
+@property (nonatomic) float elapsed;
+
 - (id)init;
 - (MusicState)getStateOfFile:(MusicFile*)file;
 - (float)getFileBufferingProgress:(MusicFile*)file;
@@ -65,5 +69,7 @@ struct AQPlayerState {
 - (MusicFile*)nextFileFor:(MusicFile*)file;
 - (NSString*)fsFilenameFor:(MusicFile*)file;
 - (NSString*)libraryFilenameFor:(MusicFile*)file;
+
+- (void)setPosition:(float)seconds;
 
 @end

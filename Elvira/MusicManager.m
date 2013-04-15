@@ -116,7 +116,6 @@
 
 -(void)playFile:(MusicFile*)file
 {
-    
     // reset position    
     aqData.mCurrentPacket = 0;
     // open file
@@ -128,9 +127,17 @@
     AudioFileID audioFile;
     AudioFileOpenURL(audioFileURL, 0x01, 0, &audioFile);
     CFRelease(audioFileURL);
+    UInt32 dataFormatSize;
+    // get length
+    dataFormatSize = sizeof(aqData.mPacketCount);
+    AudioFileGetProperty(audioFile, kAudioFilePropertyAudioDataPacketCount, &dataFormatSize, &aqData.mPacketCount);
+    Float64 duration;
+    dataFormatSize = sizeof(duration);
+    AudioFileGetProperty(audioFile, kAudioFilePropertyEstimatedDuration, &dataFormatSize, &duration);
+    self.total = duration;
     // get data format
     AudioStreamBasicDescription dataFormat;
-    UInt32 dataFormatSize = sizeof(aqData.mDataFormat);
+    dataFormatSize = sizeof(dataFormat);
     AudioFileGetProperty(audioFile, kAudioFilePropertyDataFormat, &dataFormatSize, &dataFormat);
     // if audio queue exists and formats are equal, we can just substitute mAudioFile with our file
     if (aqData.mQueue && memcmp(&aqData.mDataFormat, &dataFormat, dataFormatSize) == 0 && false)
@@ -260,6 +267,8 @@ static void HandleOutputBuffer(void *aqData, AudioQueueRef inAQ, AudioQueueBuffe
     struct AQPlayerState* pAqData = (struct AQPlayerState*)aqData;
     MusicManager* pMusicManager = (MusicManager*)pAqData->musicManager;
     
+    pMusicManager.elapsed = pMusicManager.total * pAqData->mCurrentPacket / pAqData->mPacketCount;
+    
     UInt32 numBytesReadFromFile;
     UInt32 numPackets = pAqData->mNumPacketsToRead;
     AudioFileReadPackets(pAqData->mAudioFile, false, &numBytesReadFromFile, pAqData->mPacketDescs, pAqData->mCurrentPacket, &numPackets, inBuffer->mAudioData);
@@ -328,6 +337,11 @@ void DeriveBufferSize (
 - (NSString*)libraryFilenameFor:(MusicFile*)file
 {
     return [[[file.cwd componentsJoinedByString:@"/"] stringByAppendingString:@"/"] stringByAppendingString:file.filename];
+}
+
+- (void)setPosition:(float)seconds
+{
+    
 }
 
 @end
