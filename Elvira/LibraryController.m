@@ -9,81 +9,85 @@
 #import "LibraryController.h"
 #import "QuartzCore/QuartzCore.h"
 
-@interface LibraryController ()
-
-@end
+#include "MusicFile.h"
 
 @implementation LibraryController
 
-@synthesize library, cwd, mm, directories, files;
+@synthesize reloadButton;
+@synthesize musicManager;
+@synthesize library;
+@synthesize cwd;
+@synthesize directories;
+@synthesize files;
 
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil library:(NSDictionary *)_library cwd:(NSMutableArray *)_cwd musicManager:(MusicManager *)_mm
+- (id)initWithNibName:(NSString*)nibNameOrNil bundle:(NSBundle*)nibBundleOrNil reloadButton:(UIBarButtonItem*)_reloadButton musicManager:(MusicManager*)_musicManager
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self)
     {
-        // store references
-        self.library = _library;
-        self.cwd = _cwd;
-        self.mm = _mm;
-        
-        // chdir to cwd
-        NSDictionary* cwdDictionary = library;
-        NSEnumerator* enumerator = [cwd objectEnumerator];
-        NSString* element;
-        while (element = [enumerator nextObject])
-        {
-            id object = [cwdDictionary objectForKey:element];
-            if (object == nil || !([object isKindOfClass:[NSDictionary class]]))
-            {
-                [self.cwd release];
-                self.cwd = [[NSMutableArray alloc] init];
-                cwdDictionary = library;
-                break;
-            }
-            cwdDictionary = object;
-        }
-        
-        // fill directories and files
-        self.directories = [[NSMutableArray alloc] initWithCapacity:[cwdDictionary count]];
-        self.files = [[NSMutableArray alloc] initWithCapacity:[cwdDictionary count]];    
-        enumerator = [cwdDictionary keyEnumerator];
-        NSString* key;
-        while (key = [enumerator nextObject])
-        {
-            if ([[cwdDictionary objectForKey:key] isKindOfClass:[NSDictionary class]])
-            {
-                [directories addObject:key];
-            }
-            else
-            {
-                [files addObject:key];
-            }
-        }    
-        [directories sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
-        [files sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
-        
-        // set title
-        if (cwd.count)
-        {
-            self.navigationItem.title = [cwd lastObject];
-        }
+        self.reloadButton = _reloadButton;
+        self.musicManager = _musicManager;
         
         // subscribe to mm events
-        [[NSNotificationCenter defaultCenter] addObserver:self.tableView selector:@selector(reloadData) name:@"musicManagerStateChange" object:mm];
+        [[NSNotificationCenter defaultCenter] addObserver:self.tableView selector:@selector(reloadData) name:@"musicManagerStateChange" object:self.musicManager];
     }
     return self;
+}
+
+- (BOOL)setLibrary:(NSDictionary *)_library cwd:(NSMutableArray *)_cwd
+{
+    self.library = _library;
+    self.cwd = _cwd;
+    
+    // chdir to cwd
+    NSDictionary* cwdDictionary = self.library;
+    for (NSString* element in self.cwd)
+    {
+        id object = [cwdDictionary objectForKey:element];
+        if ([object isKindOfClass:[NSDictionary class]])
+        {
+            cwdDictionary = object;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    // fill directories and files
+    self.directories = [[NSMutableArray alloc] initWithCapacity:[cwdDictionary count]];
+    self.files = [[NSMutableArray alloc] initWithCapacity:[cwdDictionary count]];
+    for (NSString* key in cwdDictionary)
+    {
+        if ([[cwdDictionary objectForKey:key] isKindOfClass:[NSDictionary class]])
+        {
+            [self.directories addObject:key];
+        }
+        else
+        {
+            [self.files addObject:key];
+        }
+    }
+    [self.directories sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
+    [self.files sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
+    
+    // set title
+    if (self.cwd.count)
+    {
+        self.navigationItem.title = [cwd lastObject];
+    }
+    
+    // update table
+    [self.tableView reloadData];
+    
+    return true;
 }
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-
-    // Uncomment the following line to preserve selection between presentations.
-    // self.clearsSelectionOnViewWillAppear = NO;
- 
-    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-    // self.navigationItem.rightBarButtonItem = self.editButtonItem;
+    
+    [self.navigationItem setRightBarButtonItem:self.reloadButton];
 }
 
 - (void)viewDidUnload
@@ -118,6 +122,8 @@
     if (cell == nil)
     {
         cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellIdentifier] autorelease];
+        cell.textLabel.adjustsFontSizeToFitWidth = true;
+        cell.textLabel.minimumFontSize = 8;
     }
     
     if (indexPath.row < directories.count)
@@ -127,8 +133,11 @@
     }
     else
     {
+        NSString* filename = [files objectAtIndex:indexPath.row - directories.count];
+        NSString* filenameWithoutExtension = [[NSRegularExpression regularExpressionWithPattern:@"\\.[^.]+$" options:0 error:nil] stringByReplacingMatchesInString:filename options:0 range:NSMakeRange(0, [filename length]) withTemplate:@""];
+        
         cell.accessoryType = UITableViewCellAccessoryNone;
-        cell.textLabel.text = [files objectAtIndex:indexPath.row - directories.count];
+        cell.textLabel.text = filenameWithoutExtension;
     }
     
     return cell;
@@ -177,19 +186,19 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (indexPath.row < directories.count)
+    if (indexPath.row < self.directories.count)
     {
-        NSMutableArray* newCwd = [[NSMutableArray alloc] initWithArray:cwd copyItems:YES];
-        [newCwd addObject:[directories objectAtIndex:indexPath.row]];
+        NSMutableArray* newCwd = [[NSMutableArray alloc] initWithArray:self.cwd copyItems:YES];
+        [newCwd addObject:[self.directories objectAtIndex:indexPath.row]];
         
-        LibraryController* libraryController = [[LibraryController alloc] initWithNibName:@"LibraryController" bundle:nil library:library cwd:newCwd musicManager:mm];
+        LibraryController* libraryController = [[LibraryController alloc] initWithNibName:@"LibraryController" bundle:nil reloadButton:self.reloadButton musicManager:self.musicManager];
+        [libraryController setLibrary:self.library cwd:newCwd];
         [self.navigationController pushViewController:libraryController animated:YES];
-        [libraryController release];
     }
     else
     {
-        [mm playFile:[files objectAtIndex:indexPath.row - directories.count] locatedIn:cwd];
-        mm.playlist = files;
+        [musicManager wantFile:[[MusicFile alloc] initWithFilename:[files objectAtIndex:indexPath.row - directories.count] locatedIn:cwd]];
+        musicManager.playlist = files;
     }
 }
 
@@ -205,10 +214,11 @@
     }
     else
     {
-        MusicState state = [mm getStateOfFile:[files objectAtIndex:indexPath.row - directories.count] locatedIn:cwd];
+        MusicFile* file = [[MusicFile alloc] initWithFilename:[files objectAtIndex:indexPath.row - directories.count] locatedIn:cwd];
+        MusicState state = [musicManager getStateOfFile:file];
         if (state == Buffering)
         {
-            float progress = [mm getFileBufferingProgress:[files objectAtIndex:indexPath.row - directories.count] locatedIn:cwd];
+            float progress = [musicManager getFileBufferingProgress:file];
             UIView* view = [[UIView alloc] initWithFrame:cell.contentView.bounds];
             CAGradientLayer* gradient = [CAGradientLayer layer];
             gradient.frame = view.bounds;

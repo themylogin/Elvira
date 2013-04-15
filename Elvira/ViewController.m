@@ -22,15 +22,17 @@
 {
     [super viewDidLoad];
     
-    NSDictionary* library = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"library"];
-    NSMutableArray* cwd = [[NSMutableArray alloc] init];
-    
     self.musicManager = [[MusicManager alloc] init];
-    LibraryController* libraryController = [[LibraryController alloc] initWithNibName:@"LibraryController" bundle:nil library:library cwd:cwd musicManager:self.musicManager];
-    [libraryController.navigationItem setRightBarButtonItem:[[UIBarButtonItem alloc] initWithTitle:@"Reload" style:UIBarButtonItemStylePlain target:self action:@selector(reloadLibrary)]];
-    UINavigationController* libraryNavigationController = [[UINavigationController alloc] initWithRootViewController:libraryController];
-    [[libraryNavigationController view] setFrame:CGRectMake(0, 0, 320, 360)];
-    [self.view addSubview:[libraryNavigationController view]];
+    
+    self.reloadButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(loadLibrary)];
+    
+    self.libraryController = [[LibraryController alloc] initWithNibName:@"LibraryController" bundle:nil reloadButton:self.reloadButton musicManager:self.musicManager];
+    [self.libraryController setLibrary:[[NSUserDefaults standardUserDefaults] dictionaryForKey:@"library"] cwd:[[NSMutableArray alloc] init]];
+    [self.libraryController.navigationItem setRightBarButtonItem:self.reloadButton];
+    
+    self.libraryNavigationController = [[UINavigationController alloc] initWithRootViewController:self.libraryController];
+    [[self.libraryNavigationController view] setFrame:CGRectMake(0, 0, [[UIScreen mainScreen] bounds].size.width, [[UIScreen mainScreen] bounds].size.height * 0.75)];
+    [self.view addSubview:[self.libraryNavigationController view]];
 }
 
 - (void)viewDidUnload
@@ -41,24 +43,42 @@
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
-    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-        return (interfaceOrientation == UIInterfaceOrientationPortrait);
-    } else {
-        return YES;
-    }
-}
+    return (interfaceOrientation == UIInterfaceOrientationPortrait);}
 
-- (void)reloadLibrary
+- (void)loadLibrary
 {
-    NSURL* url = [NSURL URLWithString:@"http://player.thelogin.ru/index/list_directory_files_multidimensional?directory="];
-    NSURLRequest* request = [NSURLRequest requestWithURL:url];
-    NSError* error = nil;
-    NSURLResponse* response = nil;
-    NSData* data = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
-    JSONDecoder* jsonKitDecoder = [JSONDecoder decoder];
-    NSDictionary* library = [jsonKitDecoder objectWithData:data];
-    [[NSUserDefaults standardUserDefaults] setObject:library forKey:@"library"];
-    [[NSUserDefaults standardUserDefaults] synchronize];
+    [self.reloadButton setEnabled:false];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        NSURL* url = [NSURL URLWithString:@"http://player.thelogin.ru/index/list_directory_files_multidimensional?directory="];
+        NSURLRequest* request = [NSURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:120.0];
+        
+        NSError* error = nil;
+        NSURLResponse* response = nil;
+        NSData* data = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+        
+        JSONDecoder* jsonKitDecoder = [JSONDecoder decoder];
+        NSDictionary* library = [jsonKitDecoder objectWithData:data];
+        [[NSUserDefaults standardUserDefaults] setObject:library forKey:@"library"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.reloadButton setEnabled:true];
+            
+            // Update libraries and chdir .. if current folder does not exist
+            LibraryController* lastOkController = self.libraryController;
+            for (LibraryController* c in [self.libraryNavigationController viewControllers])
+            {
+                if ([c setLibrary:library cwd:c.cwd])
+                {
+                    lastOkController = c;
+                }
+                else
+                {
+                    [self.libraryNavigationController popToViewController:lastOkController animated:true];
+                }
+            }
+        });
+    });
 }
 
 @end

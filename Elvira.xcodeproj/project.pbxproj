@@ -32,6 +32,7 @@
 		73C66D52157809C6004CBD40 /* Icon-72.png in Resources */ = {isa = PBXBuildFile; fileRef = 73C66D4F157809C6004CBD40 /* Icon-72.png */; };
 		73C66D53157809C6004CBD40 /* Icon-Small-50.png in Resources */ = {isa = PBXBuildFile; fileRef = 73C66D50157809C6004CBD40 /* Icon-Small-50.png */; };
 		73C66D54157809C6004CBD40 /* Icon-Small.png in Resources */ = {isa = PBXBuildFile; fileRef = 73C66D51157809C6004CBD40 /* Icon-Small.png */; };
+		73C7D62716B46C73006F2D36 /* MusicFile.m in Sources */ = {isa = PBXBuildFile; fileRef = 73C7D62616B46C73006F2D36 /* MusicFile.m */; };
 		73E19DB215E2A9B300013F77 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73E19DB115E2A9B300013F77 /* UIKit.framework */; };
 		73E19DB415E2A9C500013F77 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73E19DB315E2A9C500013F77 /* Foundation.framework */; };
 /* End PBXBuildFile section */
@@ -83,6 +84,8 @@
 		73C66D4F157809C6004CBD40 /* Icon-72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Icon-72.png"; path = "Elvira/Icon-72.png"; sourceTree = "<group>"; };
 		73C66D50157809C6004CBD40 /* Icon-Small-50.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Icon-Small-50.png"; path = "Elvira/Icon-Small-50.png"; sourceTree = "<group>"; };
 		73C66D51157809C6004CBD40 /* Icon-Small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Icon-Small.png"; path = "Elvira/Icon-Small.png"; sourceTree = "<group>"; };
+		73C7D62516B46C73006F2D36 /* MusicFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MusicFile.h; sourceTree = "<group>"; };
+		73C7D62616B46C73006F2D36 /* MusicFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MusicFile.m; sourceTree = "<group>"; };
 		73E19DB115E2A9B300013F77 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		73E19DB315E2A9C500013F77 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -163,6 +166,8 @@
 				68271686154DAF7000558E25 /* LibraryController.h */,
 				68271687154DAF7000558E25 /* LibraryController.m */,
 				68271688154DAF7000558E25 /* LibraryController.xib */,
+				73C7D62516B46C73006F2D36 /* MusicFile.h */,
+				73C7D62616B46C73006F2D36 /* MusicFile.m */,
 				6898E2FA15501DC400B7032D /* MusicManager.h */,
 				6898E2FB15501DC400B7032D /* MusicManager.m */,
 				68271655154DAE2A00558E25 /* Supporting Files */,
@@ -342,6 +347,7 @@
 				68271689154DAF7000558E25 /* LibraryController.m in Sources */,
 				6827168E154DB23200558E25 /* JSONKit.m in Sources */,
 				6898E2FC15501DC400B7032D /* MusicManager.m in Sources */,
+				73C7D62716B46C73006F2D36 /* MusicFile.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

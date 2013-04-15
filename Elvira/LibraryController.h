@@ -11,12 +11,17 @@
 
 @interface LibraryController : UITableViewController
 
+@property (nonatomic, retain) UIBarButtonItem* reloadButton;
+@property (nonatomic, retain) MusicManager* musicManager;
+
 @property (nonatomic, retain) NSDictionary* library;
 @property (nonatomic, retain) NSMutableArray* cwd;
-@property (nonatomic, retain) MusicManager* mm;
+
 @property (nonatomic, retain) NSMutableArray* directories;
 @property (nonatomic, retain) NSMutableArray* files;
 
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil library:(NSDictionary *)library cwd:(NSMutableArray *)cwd musicManager:(MusicManager *)mm;
+- (id)initWithNibName:(NSString*)nibNameOrNil bundle:(NSBundle*)nibBundleOrNil reloadButton:(UIBarButtonItem*)reloadButton musicManager:(MusicManager*)musicManager;
+
+- (BOOL)setLibrary:(NSDictionary*)library cwd:(NSMutableArray*)cwd;
 
 @end
