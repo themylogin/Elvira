@@ -18,9 +18,8 @@ typedef enum {
     Playing
 } MusicState;
 
-static const int kNumberBuffers = 3;
+static const int kNumberBuffers = 1;
 struct AQPlayerState {
-    NSRecursiveLock*              lock;
     void*                         musicManager;
     
     AudioStreamBasicDescription   mDataFormat;

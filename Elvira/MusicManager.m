@@ -23,7 +23,6 @@
     [documentsDir retain];
     
     // audio queue
-    aqData.lock = [[NSRecursiveLock alloc] init];
     aqData.musicManager = self;
     aqData.mQueue = NULL;
     
@@ -93,10 +92,16 @@
 
 - (void)wantNextFile
 {
-    MusicFile* nextFile = [self nextFileFor:nowPlayingFile];
+    MusicFile* nextFile = [self nextFileFor:self->nowPlayingFile];
     if (nextFile)
     {
-        [self wantFile:nextFile];    }
+        [self wantFile:nextFile];
+    }
+    else
+    {
+        self->nowPlayingFile = nil;
+    }
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"musicManagerStateChange" object:self];
 }
 
 - (void)bufferFile:(MusicFile*)file
@@ -110,8 +115,10 @@
 }
 
 -(void)playFile:(MusicFile*)file
-{    
-    [aqData.lock lock];
+{
+    
+    // reset position    
+    aqData.mCurrentPacket = 0;
     // open file
     NSString* fsFilename = [self fsFilenameFor:file];
     CFURLRef audioFileURL = CFURLCreateFromFileSystemRepresentation(NULL,
@@ -180,11 +187,9 @@
         
         AudioQueueStart(aqData.mQueue, NULL);
     }
-    aqData.mCurrentPacket = 0;
     
     nowPlayingFile = [file copy];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"musicManagerStateChange" object:self];
-    [aqData.lock unlock];
 }
 
 // NSURLConnection delegates
@@ -255,7 +260,6 @@ static void HandleOutputBuffer(void *aqData, AudioQueueRef inAQ, AudioQueueBuffe
     struct AQPlayerState* pAqData = (struct AQPlayerState*)aqData;
     MusicManager* pMusicManager = (MusicManager*)pAqData->musicManager;
     
-    //[pAqData->lock lock];
     UInt32 numBytesReadFromFile;
     UInt32 numPackets = pAqData->mNumPacketsToRead;
     AudioFileReadPackets(pAqData->mAudioFile, false, &numBytesReadFromFile, pAqData->mPacketDescs, pAqData->mCurrentPacket, &numPackets, inBuffer->mAudioData);
@@ -263,12 +267,10 @@ static void HandleOutputBuffer(void *aqData, AudioQueueRef inAQ, AudioQueueBuffe
     {
         inBuffer->mAudioDataByteSize = numBytesReadFromFile;
         AudioQueueEnqueueBuffer(pAqData->mQueue, inBuffer, (pAqData->mPacketDescs ? numPackets : 0), pAqData->mPacketDescs);
-        pAqData->mCurrentPacket += numPackets;        
-        //[pAqData->lock unlock];
+        pAqData->mCurrentPacket += numPackets;    
     }
     else
     {        
-        //[pAqData->lock unlock];
         [pMusicManager wantNextFile];
     }
 }
