@@ -96,8 +96,7 @@
     MusicFile* nextFile = [self nextFileFor:nowPlayingFile];
     if (nextFile)
     {
-        [self wantFile:nextFile];
-    }
+        [self wantFile:nextFile];    }
 }
 
 - (void)bufferFile:(MusicFile*)file
