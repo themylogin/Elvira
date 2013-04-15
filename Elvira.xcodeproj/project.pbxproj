@@ -35,6 +35,7 @@
 		73C7D62716B46C73006F2D36 /* MusicFile.m in Sources */ = {isa = PBXBuildFile; fileRef = 73C7D62616B46C73006F2D36 /* MusicFile.m */; };
 		73E19DB215E2A9B300013F77 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73E19DB115E2A9B300013F77 /* UIKit.framework */; };
 		73E19DB415E2A9C500013F77 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73E19DB315E2A9C500013F77 /* Foundation.framework */; };
+		847B301E171C463300FF43B6 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 847B301D171C463300FF43B6 /* Default-568h@2x.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -88,6 +89,7 @@
 		73C7D62616B46C73006F2D36 /* MusicFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MusicFile.m; sourceTree = "<group>"; };
 		73E19DB115E2A9B300013F77 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		73E19DB315E2A9C500013F77 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		847B301D171C463300FF43B6 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -120,6 +122,7 @@
 		6827163F154DAE2A00558E25 = {
 			isa = PBXGroup;
 			children = (
+				847B301D171C463300FF43B6 /* Default-568h@2x.png */,
 				73E19DB315E2A9C500013F77 /* Foundation.framework */,
 				73E19DB115E2A9B300013F77 /* UIKit.framework */,
 				73C66D3C1577FD05004CBD40 /* AVFoundation.framework */,
@@ -307,6 +310,7 @@
 				73C66D52157809C6004CBD40 /* Icon-72.png in Resources */,
 				73C66D53157809C6004CBD40 /* Icon-Small-50.png in Resources */,
 				73C66D54157809C6004CBD40 /* Icon-Small.png in Resources */,
+				847B301E171C463300FF43B6 /* Default-568h@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -464,7 +468,7 @@
 				INFOPLIST_FILE = "Elvira/Elvira-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos5.1;
+				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
 				WRAPPER_EXTENSION = app;
 			};
@@ -478,7 +482,7 @@
 				INFOPLIST_FILE = "Elvira/Elvira-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos5.1;
+				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
 				WRAPPER_EXTENSION = app;
 			};
