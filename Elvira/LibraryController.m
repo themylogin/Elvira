@@ -206,23 +206,27 @@
 {
     cell.backgroundColor = [UIColor clearColor];
     cell.backgroundView = nil;
+    cell.textLabel.textColor = [UIColor blackColor];
     
     if (indexPath.row < directories.count)
     {
-        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-        cell.textLabel.text = [directories objectAtIndex:indexPath.row];
+        // ...
     }
     else
     {
         MusicFile* file = [[MusicFile alloc] initWithFilename:[files objectAtIndex:indexPath.row - directories.count] locatedIn:cwd];
         MusicState state = [musicManager getStateOfFile:file];
+        if (state == NotBuffered)
+        {
+            cell.backgroundColor = [UIColor colorWithRed:0.95 green:0.95 blue:0.95 alpha:1.0];
+        }
         if (state == Buffering)
         {
             float progress = [musicManager getFileBufferingProgress:file];
             UIView* view = [[UIView alloc] initWithFrame:cell.contentView.bounds];
             CAGradientLayer* gradient = [CAGradientLayer layer];
             gradient.frame = view.bounds;
-            gradient.colors = [NSArray arrayWithObjects:(id)[[UIColor lightGrayColor] CGColor], (id)[[UIColor whiteColor] CGColor], nil];
+            gradient.colors = [NSArray arrayWithObjects:(id)[[UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0] CGColor], [[UIColor colorWithRed:0.95 green:0.95 blue:0.95 alpha:1.0] CGColor], nil];
             gradient.locations = [NSArray arrayWithObjects:[NSNumber numberWithFloat:progress], (id)[NSNumber numberWithFloat:progress], nil];
             gradient.startPoint = CGPointMake(0.0, 0.5);
             gradient.endPoint = CGPointMake(1.0, 0.5);
@@ -231,11 +235,12 @@
         }
         if (state == Buffered)
         {
-            cell.backgroundColor = [UIColor lightGrayColor];
+            cell.backgroundColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0];
         }
         if (state == Playing)
         {
-            cell.backgroundColor = [UIColor greenColor];
+            cell.backgroundColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0];
+            cell.textLabel.textColor = [UIColor orangeColor];
         }
     }
 }
