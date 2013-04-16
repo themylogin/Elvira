@@ -18,6 +18,8 @@
 @property (nonatomic, retain) LibraryController* libraryController;
 @property (nonatomic, retain) UINavigationController* libraryNavigationController;
 
+@property (nonatomic, retain) IBOutlet UIView* subView;
+
 @property (nonatomic, retain) IBOutlet UILabel* elapsed;
 @property (nonatomic, retain) IBOutlet UILabel* total;
 @property (nonatomic, retain) IBOutlet UISlider* position;

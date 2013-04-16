@@ -36,6 +36,7 @@
 		73E19DB215E2A9B300013F77 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73E19DB115E2A9B300013F77 /* UIKit.framework */; };
 		73E19DB415E2A9C500013F77 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73E19DB315E2A9C500013F77 /* Foundation.framework */; };
 		847B301E171C463300FF43B6 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 847B301D171C463300FF43B6 /* Default-568h@2x.png */; };
+		84F5D056171D2D5200969289 /* Pause.png in Resources */ = {isa = PBXBuildFile; fileRef = 84F5D055171D2D5200969289 /* Pause.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -90,6 +91,7 @@
 		73E19DB115E2A9B300013F77 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		73E19DB315E2A9C500013F77 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		847B301D171C463300FF43B6 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		84F5D055171D2D5200969289 /* Pause.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Pause.png; path = Elvira/Pause.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -220,12 +222,13 @@
 		73C66D47157809A3004CBD40 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				84F5D055171D2D5200969289 /* Pause.png */,
 				73C66D4F157809C6004CBD40 /* Icon-72.png */,
-				73C66D50157809C6004CBD40 /* Icon-Small-50.png */,
 				73C66D51157809C6004CBD40 /* Icon-Small.png */,
 				73C66D49157809BC004CBD40 /* Icon-Small@2x.png */,
 				73C66D4A157809BC004CBD40 /* Icon.png */,
 				73C66D4B157809BC004CBD40 /* Icon@2x.png */,
+				73C66D50157809C6004CBD40 /* Icon-Small-50.png */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -275,7 +278,7 @@
 		68271641154DAE2A00558E25 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0430;
+				LastUpgradeCheck = 0460;
 			};
 			buildConfigurationList = 68271644154DAE2A00558E25 /* Build configuration list for PBXProject "Elvira" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -311,6 +314,7 @@
 				73C66D53157809C6004CBD40 /* Icon-Small-50.png in Resources */,
 				73C66D54157809C6004CBD40 /* Icon-Small.png in Resources */,
 				847B301E171C463300FF43B6 /* Default-568h@2x.png in Resources */,
+				84F5D056171D2D5200969289 /* Pause.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -415,8 +419,11 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CLANG_ENABLE_OBJC_ARC = NO;
-				CODE_SIGN_IDENTITY = "";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Vasily Zubarev (NH6LH28CRT)";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -431,7 +438,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "C6A99153-BAE1-46A0-9B68-B67BDEB12A7B";
+				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = NO;
@@ -444,8 +451,11 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CLANG_ENABLE_OBJC_ARC = NO;
-				CODE_SIGN_IDENTITY = "";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
@@ -454,6 +464,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = NO;

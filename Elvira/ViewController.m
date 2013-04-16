@@ -31,8 +31,8 @@
     [self.libraryController.navigationItem setRightBarButtonItem:self.reloadButton];
     
     self.libraryNavigationController = [[UINavigationController alloc] initWithRootViewController:self.libraryController];
-    [[self.libraryNavigationController view] setFrame:CGRectMake(0, 0, [[UIScreen mainScreen] bounds].size.width, [[UIScreen mainScreen] bounds].size.height - [[UIScreen mainScreen] bounds].size.width * 0.3)];
-    [self.view addSubview:[self.libraryNavigationController view]];
+    [self.libraryNavigationController.view setFrame:self.subView.frame];
+    [self.subView addSubview:self.libraryNavigationController.view];
     
     [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(updateTimer) userInfo:nil repeats:YES];
 }
@@ -45,7 +45,8 @@
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
-    return (interfaceOrientation == UIInterfaceOrientationPortrait);}
+    return (interfaceOrientation == UIInterfaceOrientationPortrait);
+}
 
 - (void)loadLibrary
 {
