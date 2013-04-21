@@ -10,139 +10,251 @@
 
 #import <AVFoundation/AVAudioSession.h>
 
+static const int kNumberBuffers = 1;
+typedef struct {
+    void*                         musicManager;
+    
+    AudioStreamBasicDescription   mDataFormat;
+    AudioQueueRef                 mQueue;
+    AudioQueueBufferRef           mBuffers[kNumberBuffers];
+    AudioFileID                   mAudioFile;
+    UInt32                        bufferByteSize;
+    SInt64                        mCurrentPacket;
+    UInt32                        mNumPacketsToRead;
+    AudioStreamPacketDescription  *mPacketDescs;
+    bool                          mIsRunning;
+    UInt64                        mPacketCount;
+    Float64                       mDuration;
+    Float64                       mElapsed;
+    bool                          mPaused;
+} AQPlayerState;
+
+@interface MusicManager ()
+
+@property (nonatomic, retain) NSFileManager*    fileManager;
+@property (nonatomic, retain) NSString*         documentsDir;
+
+@property (nonatomic, retain) NSMutableArray*   bufferingQueue;
+
+@property (nonatomic, retain) MusicFile*        nowBufferingFile;
+@property (nonatomic, retain) NSURLConnection*  nowBufferingConnection;
+@property (nonatomic)         uint              nowBufferingDataExpectedLength;
+@property (nonatomic, retain) NSMutableData*    nowBufferingData;
+
+@property (nonatomic, retain) MusicFile*        nowPlayingFile;
+
+@property (nonatomic)         AQPlayerState     aqData;
+
+@end
+
 @implementation MusicManager
+
+@synthesize fileManager;
+@synthesize documentsDir;
+
+@synthesize bufferingQueue;
+
+@synthesize nowBufferingConnection;
+@synthesize nowBufferingData;
+@synthesize nowBufferingDataExpectedLength;
+@synthesize nowBufferingFile;
 
 @synthesize playlist;
 
+@synthesize nowPlayingFile;
+@synthesize nowPlayingTotal;
+@synthesize nowPlayingElapsed;
+
+@synthesize aqData;
+
 - (id)init
 {
-    // files
-    fileManager = [NSFileManager defaultManager];
-    documentsDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-    [fileManager retain];
-    [documentsDir retain];
+    self.fileManager = [NSFileManager defaultManager];
+    self.documentsDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    
+    self.bufferingQueue = [[NSMutableArray alloc] init];
+    
+    self.nowBufferingFile = nil;
+    self.nowBufferingConnection = nil;
+    self.nowBufferingDataExpectedLength = 0;
+    self.nowBufferingData = 0;
+    
+    self.nowPlayingFile = nil;
+    self.nowPlayingTotal = 0;
+    self.nowPlayingElapsed = 0;
     
     // audio queue
     aqData.musicManager = self;
     aqData.mQueue = NULL;
     
-    AudioSessionInitialize(NULL, NULL, interruptionListener, self);
+    AudioSessionInitialize(NULL, NULL, InterruptionListener, self);
     UInt32 category = kAudioSessionCategory_MediaPlayback;
     AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(category), &category);
     AudioSessionSetActive(true);
     
-    nowBufferingFile = nil;
-    
-    nowPlayingFile = nil;
-    
-    paused = false;
-    
-    shouldBufferNextFileOnEndBuffering = false;
-    shouldPlayBufferedFileOnEndBuffering = false;
-    
     return self;
 }
 
-- (MusicState)getStateOfFile:(MusicFile*)file
-{
-    if ([nowPlayingFile isEqualTo:file])
-    {
-        return Playing;
-    }
-    if ([fileManager fileExistsAtPath:[self fsFilenameFor:file]])
-    {
-        return Buffered;
-    }
-    if ([nowBufferingFile isEqualTo:file])
-    {
-        return Buffering;
-    }    
-    return NotBuffered;
-}
-
-- (float)getFileBufferingProgress:(MusicFile*)file
-{
-    if ([nowBufferingFile isEqualTo:file] && nowBufferingDataExpectedLength > 0)
-    {
-        return (float)nowBufferingData.length / (float)nowBufferingDataExpectedLength;
-    }
-    
-    return 0.0;
-}
-
-- (void)wantFile:(MusicFile*)file
-{    
-    MusicState state = [self getStateOfFile:file];
-    if (state == Buffered)
-    {
-        [self playFile:file];
-    }
-    if (state == Buffering)
-    {
-        // ...
-    }
-    if (state == NotBuffered)
-    {
-        shouldPlayBufferedFileOnEndBuffering = true;
-        shouldBufferNextFileOnEndBuffering = true;
-        
-        [self bufferFile:file];
-    }
-}
-
-- (void)wantNextFile
-{
-    MusicFile* nextFile = [self nextFileFor:self->nowPlayingFile];
-    if (nextFile)
-    {
-        [self wantFile:nextFile];
-    }
-    else
-    {
-        self->nowPlayingFile = nil;
-    }
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"musicManagerStateChange" object:self];
-}
+#pragma mark - Buffering
 
 - (void)bufferFile:(MusicFile*)file
 {
-    [nowBufferingData release];
-    [nowBufferingConnection cancel];
-    
-    nowBufferingFile = [file copy];
-    nowBufferingDataExpectedLength = 0;
-    nowBufferingConnection = [[NSURLConnection alloc] initWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[@"http://player.thelogin.ru/index/get_file?file=" stringByAppendingString:[[self libraryFilenameFor:file] stringByAddingPercentEscapesUsingEncoding:NSASCIIStringEncoding]]] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:60.0] delegate:self];
+    [self.bufferingQueue addObject:file];
+    [self doBuffering];
 }
 
--(void)playFile:(MusicFile*)file
+- (void)doBuffering
 {
-    // reset position    
-    aqData.mCurrentPacket = 0;
-    // open file
+    if (self.nowBufferingConnection)
+    {
+        return;
+    }
+    if (self.bufferingQueue.count == 0)
+    {
+        return;
+    }
+    
+    self.nowBufferingFile = [[self.bufferingQueue objectAtIndex:0] copy];
+    [self.bufferingQueue removeObjectAtIndex:0];
+    
+    if ([self.fileManager fileExistsAtPath:[self fsFilenameFor:self.nowBufferingFile]])
+    {
+        [self doBuffering];
+        return;
+    }
+    
+    self.nowBufferingDataExpectedLength = 0;
+    self.nowBufferingConnection = [[NSURLConnection alloc] initWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[@"http://player.thelogin.ru/index/get_file?file=" stringByAppendingString:[[self libraryFilenameFor:self.nowBufferingFile] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:60.0] delegate:self];
+}
+
+- (void)connection:(NSURLConnection*)connection didFailWithError:(NSError *)error
+{
+    self.nowBufferingFile = nil;
+    self.nowBufferingConnection = nil;
+    self.nowBufferingDataExpectedLength = 0;
+    self.nowBufferingData = nil;
+    
+    [self doBuffering];
+}
+
+- (void)connection:(NSURLConnection*)connection didReceiveResponse:(NSURLResponse *)response
+{
+    if ([(NSHTTPURLResponse*)response statusCode] != 200)
+    {
+        self.nowBufferingFile = nil;
+        self.nowBufferingConnection = nil;
+        self.nowBufferingDataExpectedLength = 0;
+        self.nowBufferingData = nil;
+        
+        [self doBuffering];
+    }
+    
+    self.nowBufferingDataExpectedLength = response.expectedContentLength;
+    self.nowBufferingData = [[NSMutableData alloc] initWithCapacity:nowBufferingDataExpectedLength];
+}
+
+- (void)connection:(NSURLConnection*)connection didReceiveData:(NSData *)data
+{
+    [self.nowBufferingData appendData:data];
+    [self change];
+}
+
+- (void)connectionDidFinishLoading:(NSURLConnection*)connection
+{
+    [self.nowBufferingData writeToFile:[self fsFilenameFor:self.nowBufferingFile] atomically:YES];
+    [self change];
+    
+    self.nowBufferingFile = nil;
+    self.nowBufferingConnection = nil;
+    self.nowBufferingDataExpectedLength = 0;
+    self.nowBufferingData = nil;
+    
+    [self doBuffering];
+}
+
+# pragma mark - State retrieving
+
+- (MusicState)getStateOfFile:(MusicFile*)file
+{
+    MusicState state;
+    if ([file isEqualTo:self.nowPlayingFile])
+    {
+        state.state = Playing;
+        return state;
+    }
+    else if ([self.fileManager fileExistsAtPath:[self fsFilenameFor:file]])
+    {
+        state.state = Buffered;
+        return state;
+    }
+    else
+    {
+        if ([file isEqualTo:self.nowBufferingFile])
+        {
+            state.state = Buffering;
+            state.buffering.progress = nowBufferingDataExpectedLength > 0 ? (float)nowBufferingData.length / (float)nowBufferingDataExpectedLength : 0.0;
+            return state;
+        }
+        
+        for (MusicFile* anotherFile in self.bufferingQueue)
+        {
+            if ([anotherFile isEqualTo:file])
+            {
+                state.state = Buffering;
+                state.buffering.progress = 0.0;
+                return state;
+            }
+        }
+        
+        state.state = NotBuffered;
+        return state;
+    }
+}
+
+- (BOOL)willBufferAnythingInDirectory:(NSString*)directory locatedIn:(NSMutableArray*)cwd;
+{
+    NSString* prefix = [self libraryFilenameFor:[[MusicFile alloc] initWithFilename:directory locatedIn:cwd]];
+    for (MusicFile* file in self.bufferingQueue)
+    {
+        if ([[self libraryFilenameFor:file] hasPrefix:prefix])
+        {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+# pragma mark - Play control
+
+-(BOOL)playFile:(MusicFile*)file
+{
     NSString* fsFilename = [self fsFilenameFor:file];
-    CFURLRef audioFileURL = CFURLCreateFromFileSystemRepresentation(NULL,
-                                                                    (const UInt8*)[fsFilename UTF8String],
-                                                                    [fsFilename lengthOfBytesUsingEncoding:NSUTF8StringEncoding],
-                                                                    false);
+    if (![self.fileManager fileExistsAtPath:[self fsFilenameFor:file]])
+    {
+        return FALSE;
+    }
+    
     AudioFileID audioFile;
+    CFURLRef audioFileURL = CFURLCreateFromFileSystemRepresentation(NULL, (const UInt8*)[fsFilename UTF8String], [fsFilename lengthOfBytesUsingEncoding:NSUTF8StringEncoding],false);
     AudioFileOpenURL(audioFileURL, 0x01, 0, &audioFile);
     CFRelease(audioFileURL);
-    UInt32 dataFormatSize;
+    
+    UInt32 propertySize;
     // get length
-    dataFormatSize = sizeof(aqData.mPacketCount);
-    AudioFileGetProperty(audioFile, kAudioFilePropertyAudioDataPacketCount, &dataFormatSize, &aqData.mPacketCount);
-    Float64 duration;
-    dataFormatSize = sizeof(duration);
-    AudioFileGetProperty(audioFile, kAudioFilePropertyEstimatedDuration, &dataFormatSize, &duration);
-    self.total = duration;
+    propertySize = sizeof(aqData.mPacketCount);
+    AudioFileGetProperty(audioFile, kAudioFilePropertyAudioDataPacketCount, &propertySize, &aqData.mPacketCount);
+    // get duration
+    propertySize = sizeof(aqData.mDuration);
+    AudioFileGetProperty(audioFile, kAudioFilePropertyEstimatedDuration, &propertySize, &aqData.mDuration);
     // get data format
     AudioStreamBasicDescription dataFormat;
-    dataFormatSize = sizeof(dataFormat);
-    AudioFileGetProperty(audioFile, kAudioFilePropertyDataFormat, &dataFormatSize, &dataFormat);
+    propertySize = sizeof(dataFormat);
+    AudioFileGetProperty(audioFile, kAudioFilePropertyDataFormat, &propertySize, &dataFormat);
     // if audio queue exists and formats are equal, we can just substitute mAudioFile with our file
-    if (aqData.mQueue && memcmp(&aqData.mDataFormat, &dataFormat, dataFormatSize) == 0 && false)
+    if (FALSE && aqData.mQueue && memcmp(&aqData.mDataFormat, &dataFormat, propertySize) == 0)
     {
-        aqData.mAudioFile = audioFile;
+        aqData.mAudioFile = audioFile;        
+        aqData.mCurrentPacket = 0;
     }
     else
     {
@@ -154,12 +266,13 @@
             free(aqData.mPacketDescs);
         }
         
+        aqData.mCurrentPacket = 0;
         aqData.mAudioFile = audioFile;
         aqData.mDataFormat = dataFormat;
         AudioQueueNewOutput(&aqData.mDataFormat, HandleOutputBuffer, &aqData, NULL, NULL, 0, &aqData.mQueue);
         
         UInt32 maxPacketSize;
-        UInt32 propertySize = sizeof (maxPacketSize);
+        propertySize = sizeof(maxPacketSize);
         AudioFileGetProperty(aqData.mAudioFile, kAudioFilePropertyPacketSizeUpperBound, &propertySize, &maxPacketSize);
         
         DeriveBufferSize(&aqData.mDataFormat, maxPacketSize, 0.5, &aqData.bufferByteSize, &aqData.mNumPacketsToRead);
@@ -167,7 +280,7 @@
         // VBR
         if (aqData.mDataFormat.mBytesPerPacket == 0 || aqData.mDataFormat.mFramesPerPacket == 0)
         {
-            aqData.mPacketDescs = (AudioStreamPacketDescription*)malloc(aqData.mNumPacketsToRead * sizeof (AudioStreamPacketDescription));
+            aqData.mPacketDescs = (AudioStreamPacketDescription*)malloc(aqData.mNumPacketsToRead * sizeof(AudioStreamPacketDescription));
         }
         else
         {
@@ -177,7 +290,7 @@
         UInt32 cookieSize = sizeof(UInt32);
         if (!AudioFileGetPropertyInfo(aqData.mAudioFile, kAudioFilePropertyMagicCookieData, &cookieSize, NULL) && cookieSize)
         {
-            char* magicCookie = (char *)malloc(cookieSize);
+            char* magicCookie = (char*)malloc(cookieSize);
             AudioFileGetProperty(aqData.mAudioFile, kAudioFilePropertyMagicCookieData, &cookieSize, magicCookie);
             AudioQueueSetProperty(aqData.mQueue, kAudioQueueProperty_MagicCookie, magicCookie, cookieSize);
             free(magicCookie);
@@ -189,62 +302,65 @@
             HandleOutputBuffer(&aqData, aqData.mQueue, aqData.mBuffers[i]);
         }
         
-        Float32 gain = 1.0;
-        AudioQueueSetParameter(aqData.mQueue, kAudioQueueParam_Volume, gain);
-        
+        aqData.mPaused = FALSE;
         AudioQueueStart(aqData.mQueue, NULL);
     }
     
-    nowPlayingFile = [file copy];
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"musicManagerStateChange" object:self];
+    self.nowPlayingFile = file;
+    self.nowPlayingTotal = aqData.mDuration;
+    [self change];
+    return TRUE;
 }
 
-// NSURLConnection delegates
-
-- (void)connection:(NSURLConnection*)connection didFailWithError:(NSError *)error
+- (BOOL)seekTo:(float)seconds
 {
-    // [data setLength:0];
-}
-
-- (void)connection:(NSURLConnection*)connection didReceiveResponse:(NSURLResponse *)response
-{
-    nowBufferingDataExpectedLength = response.expectedContentLength;
-    nowBufferingData = [[NSMutableData alloc] initWithCapacity:nowBufferingDataExpectedLength];
-}
-
-- (void)connection:(NSURLConnection*)connection didReceiveData:(NSData *)data
-{
-    [nowBufferingData appendData:data];
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"musicManagerStateChange" object:self];
-}
-
-- (void)connectionDidFinishLoading:(NSURLConnection*)connection
-{
-    [nowBufferingData writeToFile:[self fsFilenameFor:nowBufferingFile] atomically:YES];
-    
-    if (shouldPlayBufferedFileOnEndBuffering)
+    SInt64 newCurrentPacket = self.aqData.mPacketCount * (seconds / self.aqData.mDuration);
+    if (newCurrentPacket < self.aqData.mPacketCount)
     {
-        [self playFile:nowBufferingFile];
-        shouldPlayBufferedFileOnEndBuffering = false;
+        aqData.mCurrentPacket = newCurrentPacket;
+        return TRUE;
     }
-    
-    if (shouldBufferNextFileOnEndBuffering)
+    else
     {
-        MusicFile* nextFile = nowBufferingFile;
-        while ((nextFile = [self nextFileFor:nextFile]))
-        {
-            if ([self getStateOfFile:nextFile] == NotBuffered)
-            {
-                [self bufferFile:[self nextFileFor:nowBufferingFile]];
-                break;
-            }
-        }
+        return FALSE;
     }
 }
 
-// Audio Session
-void interruptionListener(	void *	inClientData,
-                          UInt32	inInterruptionState)
+- (void)togglePause
+{
+    if (aqData.mPaused)
+    {
+        AudioQueueStart(aqData.mQueue, NULL);
+        aqData.mPaused = FALSE;
+    }
+    else
+    {
+        AudioQueuePause(aqData.mQueue);
+        aqData.mPaused = TRUE;
+    }
+    
+}
+
+#pragma mark - Internals
+
+- (void)change
+{
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"change" object:self];
+}
+
+- (NSString*)fsFilenameFor:(MusicFile*)file
+{
+    return [[[documentsDir stringByAppendingString:@"/"] stringByAppendingString:[[[file.cwd componentsJoinedByString:@"@"] stringByAppendingString:@"@"] stringByAppendingString:file.filename]] stringByAppendingString:@".mp3"];
+}
+
+- (NSString*)libraryFilenameFor:(MusicFile*)file
+{
+    return [[[file.cwd componentsJoinedByString:@"/"] stringByAppendingString:@"/"] stringByAppendingString:file.filename];
+}
+
+#pragma mark - Audio Session
+
+void InterruptionListener(void* inClientData, UInt32 inInterruptionState)
 {
     MusicManager* mm = (MusicManager*)inClientData;
     if (inInterruptionState == kAudioSessionBeginInterruption)
@@ -261,13 +377,17 @@ void interruptionListener(	void *	inClientData,
     }
 }
 
-// Audio Queue
-static void HandleOutputBuffer(void *aqData, AudioQueueRef inAQ, AudioQueueBufferRef inBuffer)
-{    
-    struct AQPlayerState* pAqData = (struct AQPlayerState*)aqData;
+void HandleOutputBuffer(void *aqData, AudioQueueRef inAQ, AudioQueueBufferRef inBuffer)
+{
+    AQPlayerState* pAqData = (AQPlayerState*)aqData;
     MusicManager* pMusicManager = (MusicManager*)pAqData->musicManager;
     
-    pMusicManager.elapsed = pMusicManager.total * pAqData->mCurrentPacket / pAqData->mPacketCount;
+    Float64 elapsed = pAqData->mDuration * pAqData->mCurrentPacket / pAqData->mPacketCount;
+    if ((int)elapsed != pMusicManager.nowPlayingElapsed)
+    {
+        pMusicManager.nowPlayingElapsed = (int)elapsed;
+        [pMusicManager change];
+    }
     
     UInt32 numBytesReadFromFile;
     UInt32 numPackets = pAqData->mNumPacketsToRead;
@@ -276,21 +396,42 @@ static void HandleOutputBuffer(void *aqData, AudioQueueRef inAQ, AudioQueueBuffe
     {
         inBuffer->mAudioDataByteSize = numBytesReadFromFile;
         AudioQueueEnqueueBuffer(pAqData->mQueue, inBuffer, (pAqData->mPacketDescs ? numPackets : 0), pAqData->mPacketDescs);
-        pAqData->mCurrentPacket += numPackets;    
+        pAqData->mCurrentPacket += numPackets;
     }
     else
     {        
-        [pMusicManager wantNextFile];
+        if (pMusicManager.playlist.count == 0)
+        {
+            AudioQueueStop(pAqData->mQueue, true);
+            AudioQueueDispose(pAqData->mQueue, true);
+            AudioFileClose(pAqData->mAudioFile);
+            free(pAqData->mPacketDescs);
+            
+            pAqData->mQueue = NULL;
+            
+            pMusicManager.nowPlayingFile = NULL;
+            pMusicManager.nowPlayingTotal = 0;
+            pMusicManager.nowPlayingElapsed = 0;
+            
+            [pMusicManager change];
+        }
+        else
+        {
+            MusicFile* file = [pMusicManager.playlist objectAtIndex:0];
+            [pMusicManager.playlist removeObjectAtIndex:0];
+            [pMusicManager playFile:file];
+        }
     }
 }
 
-void DeriveBufferSize (
-                        AudioStreamBasicDescription *ASBDesc,                            // 1
-                        UInt32                      maxPacketSize,                       // 2
-                        Float64                     seconds,                             // 3
-                        UInt32                      *outBufferSize,                      // 4
-                        UInt32                      *outNumPacketsToRead                 // 5
-                        ) {
+void DeriveBufferSize(
+                      AudioStreamBasicDescription *ASBDesc,                            // 1
+                      UInt32                      maxPacketSize,                       // 2
+                      Float64                     seconds,                             // 3
+                      UInt32                      *outBufferSize,                      // 4
+                      UInt32                      *outNumPacketsToRead                 // 5
+                      )
+{
     static const int maxBufferSize = 0x50000;                        // 6
     static const int minBufferSize = 0x4000;                         // 7
     
@@ -315,33 +456,6 @@ void DeriveBufferSize (
     }
     
     *outNumPacketsToRead = *outBufferSize / maxPacketSize;           // 12
-}
-
-// internals
-
-- (MusicFile*)nextFileFor:(MusicFile*)file
-{
-    int i = [playlist indexOfObject:file.filename];
-    if (i != NSNotFound && i + 1 < [playlist count])
-    {
-        return [[MusicFile alloc] initWithFilename:[playlist objectAtIndex:i + 1] locatedIn:file.cwd];
-    }
-    return nil;
-}
-
-- (NSString*)fsFilenameFor:(MusicFile*)file
-{
-    return [[[documentsDir stringByAppendingString:@"/"] stringByAppendingString:[[[file.cwd componentsJoinedByString:@"@"] stringByAppendingString:@"@"] stringByAppendingString:file.filename]] stringByAppendingString:@".mp3"];
-}
-
-- (NSString*)libraryFilenameFor:(MusicFile*)file
-{
-    return [[[file.cwd componentsJoinedByString:@"/"] stringByAppendingString:@"/"] stringByAppendingString:file.filename];
-}
-
-- (void)setPosition:(float)seconds
-{
-    
 }
 
 @end

@@ -14,30 +14,55 @@
 @implementation LibraryController
 
 @synthesize reloadButton;
+
 @synthesize musicManager;
+
 @synthesize library;
 @synthesize cwd;
+
 @synthesize directories;
 @synthesize files;
 
-- (id)initWithNibName:(NSString*)nibNameOrNil bundle:(NSBundle*)nibBundleOrNil reloadButton:(UIBarButtonItem*)_reloadButton musicManager:(MusicManager*)_musicManager
+- (id)initWithNibName:(NSString*)nibNameOrNil bundle:(NSBundle*)nibBundleOrNil reloadButton:(UIBarButtonItem*)aReloadButton musicManager:(MusicManager*)aMusicManager
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self)
     {
-        self.reloadButton = _reloadButton;
-        self.musicManager = _musicManager;
+        self.reloadButton = aReloadButton;
         
-        // subscribe to mm events
-        [[NSNotificationCenter defaultCenter] addObserver:self.tableView selector:@selector(reloadData) name:@"musicManagerStateChange" object:self.musicManager];
+        self.musicManager = aMusicManager;        
+        [[NSNotificationCenter defaultCenter] addObserver:self.tableView selector:@selector(reloadData) name:@"change" object:self.musicManager];
     }
     return self;
 }
 
-- (BOOL)setLibrary:(NSDictionary *)_library cwd:(NSMutableArray *)_cwd
+- (void)viewDidLoad
 {
-    self.library = _library;
-    self.cwd = _cwd;
+    [super viewDidLoad];
+    
+    [self.navigationItem setRightBarButtonItem:self.reloadButton];
+    
+    UISwipeGestureRecognizer* bufferGestureRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(buffer:)];
+    [bufferGestureRecognizer setDirection:UISwipeGestureRecognizerDirectionRight];
+    [self.tableView addGestureRecognizer:bufferGestureRecognizer];
+}
+
+- (void)viewDidUnload
+{
+    [super viewDidUnload];
+    // Release any retained subviews of the main view.
+    // e.g. self.myOutlet = nil;
+}
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
+{
+    return (interfaceOrientation == UIInterfaceOrientationPortrait);
+}
+
+- (BOOL)setLibrary:(NSDictionary *)aLibrary cwd:(NSMutableArray *)aCwd
+{
+    self.library = aLibrary;
+    self.cwd = aCwd;
     
     // chdir to cwd
     NSDictionary* cwdDictionary = self.library;
@@ -83,25 +108,6 @@
     return true;
 }
 
-- (void)viewDidLoad
-{
-    [super viewDidLoad];
-    
-    [self.navigationItem setRightBarButtonItem:self.reloadButton];
-}
-
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
-    // Release any retained subviews of the main view.
-    // e.g. self.myOutlet = nil;
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
-{
-    return (interfaceOrientation == UIInterfaceOrientationPortrait);
-}
-
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
@@ -143,45 +149,6 @@
     return cell;
 }
 
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
-}
-*/
-
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    }   
-    else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
-}
-*/
-
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
-{
-}
-*/
-
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
-
 #pragma mark - Table view delegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
@@ -197,8 +164,14 @@
     }
     else
     {
-        [musicManager wantFile:[[MusicFile alloc] initWithFilename:[files objectAtIndex:indexPath.row - directories.count] locatedIn:cwd]];
-        musicManager.playlist = files;
+        musicManager.playlist = [[NSMutableArray alloc] init];
+        for (int i = indexPath.row - directories.count; i < self.files.count; i++)
+        {
+            [musicManager.playlist addObject:[[MusicFile alloc] initWithFilename:[files objectAtIndex:i] locatedIn:cwd]];
+        }        
+        MusicFile* file = [musicManager.playlist objectAtIndex:0];
+        [musicManager.playlist removeObjectAtIndex:0];
+        [musicManager playFile:file];
     }
 }
 
@@ -210,39 +183,125 @@
     
     if (indexPath.row < directories.count)
     {
-        // ...
+        if ([musicManager willBufferAnythingInDirectory:[directories objectAtIndex:indexPath.row] locatedIn:cwd])
+        {
+            cell.textLabel.textColor = [UIColor blueColor];
+        }
     }
     else
     {
-        MusicFile* file = [[MusicFile alloc] initWithFilename:[files objectAtIndex:indexPath.row - directories.count] locatedIn:cwd];
-        MusicState state = [musicManager getStateOfFile:file];
-        if (state == NotBuffered)
+        MusicState state = [musicManager getStateOfFile:[self fileAtIndexPath:indexPath]];
+        
+        if (state.state == NotBuffered)
         {
-            cell.backgroundColor = [UIColor colorWithRed:0.95 green:0.95 blue:0.95 alpha:1.0];
+            cell.textLabel.textColor = [UIColor grayColor];
         }
-        if (state == Buffering)
-        {
-            float progress = [musicManager getFileBufferingProgress:file];
+        if (state.state == Buffering)
+        {            
             UIView* view = [[UIView alloc] initWithFrame:cell.contentView.bounds];
             CAGradientLayer* gradient = [CAGradientLayer layer];
             gradient.frame = view.bounds;
-            gradient.colors = [NSArray arrayWithObjects:(id)[[UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0] CGColor], [[UIColor colorWithRed:0.95 green:0.95 blue:0.95 alpha:1.0] CGColor], nil];
-            gradient.locations = [NSArray arrayWithObjects:[NSNumber numberWithFloat:progress], (id)[NSNumber numberWithFloat:progress], nil];
+            gradient.colors = [NSArray arrayWithObjects:(id)[[UIColor whiteColor] CGColor], [[UIColor grayColor] CGColor], nil];
+            gradient.locations = [NSArray arrayWithObjects:[NSNumber numberWithFloat:state.buffering.progress], (id)[NSNumber numberWithFloat:state.buffering.progress], nil];
             gradient.startPoint = CGPointMake(0.0, 0.5);
             gradient.endPoint = CGPointMake(1.0, 0.5);
             [view.layer insertSublayer:gradient atIndex:0];
             cell.backgroundView = view;   
         }
-        if (state == Buffered)
+        if (state.state == Buffered)
         {
-            cell.backgroundColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0];
         }
-        if (state == Playing)
+        if (state.state == Playing)
         {
-            cell.backgroundColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0];
             cell.textLabel.textColor = [UIColor orangeColor];
         }
     }
+}
+
+#pragma mark - Table view gestures
+
+- (void) buffer:(UISwipeGestureRecognizer*)gestureRecognizer
+{
+    NSIndexPath* indexPath = [self.tableView indexPathForRowAtPoint:[gestureRecognizer locationInView:self.tableView]];
+    if (indexPath)
+    {
+        if (indexPath.row < self.directories.count)
+        {
+            NSMutableArray* filesToBuffer = [[NSMutableArray alloc] init];
+            
+            NSMutableArray* queue = [[NSMutableArray alloc] init];
+            [queue addObject:[self.cwd arrayByAddingObject:[self.directories objectAtIndex:indexPath.row]]];
+            while (queue.count > 0)
+            {
+                // get arg
+                NSMutableArray* arg = [queue objectAtIndex:0];
+                [queue removeObjectAtIndex:0];
+                
+                // chdir to cwd
+                NSDictionary* cwdDictionary = self.library;
+                for (NSString* element in arg)
+                {
+                    id object = [cwdDictionary objectForKey:element];
+                    if ([object isKindOfClass:[NSDictionary class]])
+                    {
+                        cwdDictionary = object;
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+                
+                // fill directories and files
+                NSMutableArray* argDirectories = [[NSMutableArray alloc] initWithCapacity:[cwdDictionary count]];
+                NSMutableArray* argFiles = [[NSMutableArray alloc] initWithCapacity:[cwdDictionary count]];
+                for (NSString* key in cwdDictionary)
+                {
+                    if ([[cwdDictionary objectForKey:key] isKindOfClass:[NSDictionary class]])
+                    {
+                        [argDirectories addObject:key];
+                    }
+                    else
+                    {
+                        [argFiles addObject:key];
+                    }
+                }
+                [argDirectories sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
+                [argFiles sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
+                
+                // buffer all directories
+                for (NSString* directory in argDirectories)
+                {
+                    [queue addObject:[arg arrayByAddingObject:directory]];
+                }
+                // buffer all files
+                for (NSString* file in argFiles)
+                {
+                    [filesToBuffer addObject:[[MusicFile alloc] initWithFilename:file locatedIn:arg]];
+                    if (filesToBuffer.count > 128)
+                    {
+                        return;
+                    }
+                }
+            }
+            
+            for (MusicFile* file in filesToBuffer)
+            {
+                [self.musicManager bufferFile:file];
+            }
+        }
+        else
+        {
+            [self.musicManager bufferFile:[self fileAtIndexPath:indexPath]];
+        }
+    }
+}
+
+#pragma mark - Internals
+
+- (MusicFile*) fileAtIndexPath:(NSIndexPath*)indexPath
+{
+    return [[MusicFile alloc] initWithFilename:[self.files objectAtIndex:indexPath.row - self.directories.count] locatedIn:self.cwd];
 }
 
 @end

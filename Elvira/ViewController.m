@@ -34,7 +34,8 @@
     [self.libraryNavigationController.view setFrame:self.subView.frame];
     [self.subView addSubview:self.libraryNavigationController.view];
     
-    [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(updateTimer) userInfo:nil repeats:YES];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(update) name:@"change" object:self.musicManager];
+    [self update];
 }
 
 - (void)viewDidUnload
@@ -84,18 +85,23 @@
     });
 }
 
-- (void) updateTimer
+- (void) update
 {
-    self.elapsed.text = [NSString stringWithFormat:@"%02d:%02d", (int)self.musicManager.elapsed / 60, (int)self.musicManager.elapsed % 60];
-    self.total.text = [NSString stringWithFormat:@"%02d:%02d", (int)self.musicManager.total / 60, (int)self.musicManager.total % 60];
+    self.elapsed.text = [NSString stringWithFormat:@"%02d:%02d", (int)self.musicManager.nowPlayingElapsed / 60, (int)self.musicManager.nowPlayingElapsed % 60];
+    self.total.text = [NSString stringWithFormat:@"%02d:%02d", (int)self.musicManager.nowPlayingTotal / 60, (int)self.musicManager.nowPlayingTotal % 60];
     
-    self.position.maximumValue = self.musicManager.total;
-    self.position.value = self.musicManager.elapsed;
+    self.position.maximumValue = self.musicManager.nowPlayingTotal;
+    self.position.value = self.musicManager.nowPlayingElapsed;
+}
+
+- (IBAction) togglePause:(UIButton*)sender
+{
+    [self.musicManager togglePause];
 }
 
 - (IBAction) positionChanged:(UISlider*)sender
 {
-    [self.musicManager setPosition:sender.value];
+    [self.musicManager seekTo:sender.value];
 }
 
 @end

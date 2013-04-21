@@ -25,8 +25,8 @@
 @property (nonatomic, retain) IBOutlet UISlider* position;
 
 - (void)loadLibrary;
-- (void)updateTimer;
 
+- (IBAction) togglePause:(UIButton*)sender;
 - (IBAction) positionChanged:(UISlider*)sender;
 
 @end

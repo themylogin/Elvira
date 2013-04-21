@@ -12,6 +12,7 @@
 @interface LibraryController : UITableViewController
 
 @property (nonatomic, retain) UIBarButtonItem* reloadButton;
+
 @property (nonatomic, retain) MusicManager* musicManager;
 
 @property (nonatomic, retain) NSDictionary* library;

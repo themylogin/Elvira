@@ -16,60 +16,32 @@ typedef enum {
     Buffering,
     Buffered,
     Playing
+} MusicStateId;
+
+typedef union {
+    MusicStateId state;
+    struct {
+        MusicStateId state;
+        float progress;
+    } buffering;
 } MusicState;
 
-static const int kNumberBuffers = 1;
-struct AQPlayerState {
-    void*                         musicManager;
-    
-    AudioStreamBasicDescription   mDataFormat;
-    AudioQueueRef                 mQueue;
-    AudioQueueBufferRef           mBuffers[kNumberBuffers];
-    AudioFileID                   mAudioFile;
-    UInt32                        bufferByteSize;
-    SInt64                        mCurrentPacket;
-    UInt32                        mNumPacketsToRead;
-    AudioStreamPacketDescription  *mPacketDescs;
-    bool                          mIsRunning;
-    UInt64                        mPacketCount;
-};
-
 @interface MusicManager : NSObject
-{
-    NSFileManager* fileManager;
-    NSString* documentsDir;
-    
-    NSURLConnection*    nowBufferingConnection;
-    NSMutableData*      nowBufferingData;
-    uint                nowBufferingDataExpectedLength;
-    MusicFile*          nowBufferingFile;
-    
-    MusicFile*          nowPlayingFile;
-    
-    bool paused;
-    
-    struct AQPlayerState aqData;
-    
-    bool shouldBufferNextFileOnEndBuffering;
-    bool shouldPlayBufferedFileOnEndBuffering;
-}
 
 @property (nonatomic, retain) NSMutableArray* playlist;
 
-@property (nonatomic) Float64 total;
-@property (nonatomic) float elapsed;
+@property (nonatomic) int nowPlayingTotal;
+@property (nonatomic) int nowPlayingElapsed;
 
 - (id)init;
+
+- (void)bufferFile:(MusicFile*)file;
+
 - (MusicState)getStateOfFile:(MusicFile*)file;
-- (float)getFileBufferingProgress:(MusicFile*)file;
+- (BOOL)willBufferAnythingInDirectory:(NSString*)directory locatedIn:(NSMutableArray*)cwd;
 
-- (void)wantFile:(MusicFile*)file;
-- (void)wantNextFile;
-
-- (MusicFile*)nextFileFor:(MusicFile*)file;
-- (NSString*)fsFilenameFor:(MusicFile*)file;
-- (NSString*)libraryFilenameFor:(MusicFile*)file;
-
-- (void)setPosition:(float)seconds;
+- (BOOL)playFile:(MusicFile*)file;
+- (BOOL)seekTo:(float)seconds;
+- (void)togglePause;
 
 @end
