@@ -13,9 +13,10 @@
 
 typedef enum {
     NotBuffered,
-    Buffering,
+    Buffering,    
+    BufferingPlaying,
     Buffered,
-    Playing
+    BufferedPlaying,
 } MusicStateId;
 
 typedef union {

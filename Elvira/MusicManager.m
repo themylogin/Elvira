@@ -42,6 +42,7 @@ typedef struct {
 @property (nonatomic, retain) NSURLConnection*  nowBufferingConnection;
 @property (nonatomic)         uint              nowBufferingDataExpectedLength;
 @property (nonatomic, retain) NSMutableData*    nowBufferingData;
+@property (nonatomic)         bool              playNowBufferingFileWhenBufferedEnough;
 
 @property (nonatomic, retain) MusicFile*        nowPlayingFile;
 
@@ -80,6 +81,7 @@ typedef struct {
     self.nowBufferingConnection = nil;
     self.nowBufferingDataExpectedLength = 0;
     self.nowBufferingData = 0;
+    self.playNowBufferingFileWhenBufferedEnough = FALSE;
     
     self.nowPlayingFile = nil;
     self.nowPlayingTotal = 0;
@@ -159,17 +161,29 @@ typedef struct {
 {
     [self.nowBufferingData appendData:data];
     [self change];
+    
+    if (self.playNowBufferingFileWhenBufferedEnough && [self.nowBufferingData length] >= self.nowBufferingDataExpectedLength * 0.3)
+    {
+        [self playFile:self.nowBufferingFile];
+    }
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection*)connection
 {
     [self.nowBufferingData writeToFile:[self fsFilenameFor:self.nowBufferingFile] atomically:YES];
-    [self change];
+    
+    if (self.nowPlayingFile && [self.nowPlayingFile isEqualTo:self.nowBufferingFile])
+    {
+        AudioFileClose(aqData.mAudioFile);
+        aqData.mAudioFile = [self openAudioFile:self.nowPlayingFile];
+    }
     
     self.nowBufferingFile = nil;
     self.nowBufferingConnection = nil;
     self.nowBufferingDataExpectedLength = 0;
-    self.nowBufferingData = nil;
+    self.nowBufferingData = nil;    
+    
+    [self change];
     
     [self doBuffering];
 }
@@ -179,22 +193,32 @@ typedef struct {
 - (MusicState)getStateOfFile:(MusicFile*)file
 {
     MusicState state;
-    if ([file isEqualTo:self.nowPlayingFile])
+    if ([self.fileManager fileExistsAtPath:[self fsFilenameFor:file]])
     {
-        state.state = Playing;
-        return state;
-    }
-    else if ([self.fileManager fileExistsAtPath:[self fsFilenameFor:file]])
-    {
-        state.state = Buffered;
-        return state;
+        if ([file isEqualTo:self.nowPlayingFile])
+        {
+            state.state = BufferedPlaying;
+            return state;
+        }
+        else 
+        {
+            state.state = Buffered;
+            return state;
+        }
     }
     else
     {
         if ([file isEqualTo:self.nowBufferingFile])
         {
-            state.state = Buffering;
             state.buffering.progress = nowBufferingDataExpectedLength > 0 ? (float)nowBufferingData.length / (float)nowBufferingDataExpectedLength : 0.0;
+            if ([file isEqualTo:self.nowPlayingFile])
+            {
+                state.state = BufferingPlaying;
+            }
+            else
+            {
+                state.state = Buffering;
+            }
             return state;
         }
         
@@ -230,18 +254,45 @@ typedef struct {
 
 -(BOOL)playFile:(MusicFile*)file
 {
+    self.playNowBufferingFileWhenBufferedEnough = FALSE;
+    
     if (aqData.mQueue)
     {
         AudioQueueStop(aqData.mQueue, true);
         AudioQueueDispose(aqData.mQueue, true);
         AudioFileClose(aqData.mAudioFile);
         free(aqData.mPacketDescs);
+        
+        aqData.mQueue = NULL;
     }
     
     AudioFileID audioFile = [self openAudioFile:file];
     if (!audioFile)
     {
-        return FALSE;
+        if (!self.nowBufferingFile)
+        {
+            [self bufferFile:file];
+        }
+        
+        if ([file isEqualTo:self.nowBufferingFile])
+        {
+            if (self.nowBufferingData && self.nowBufferingDataExpectedLength && [self.nowBufferingData length] >= self.nowBufferingDataExpectedLength * 0.3)
+            {
+                if (AudioFileOpenWithCallbacks(self, NowBuffering_AudioFile_ReadProc, NULL, NowBuffering_AudioFile_GetSizeProc, NULL, kAudioFileMP3Type, &audioFile))
+                {
+                    return FALSE;
+                }
+            }
+            else
+            {
+                self.playNowBufferingFileWhenBufferedEnough = TRUE;
+                return TRUE;
+            }
+        }
+        else
+        {
+            return FALSE;
+        }
     }
     
     [self enqueueAudioFile:audioFile deriveBufferSize:TRUE];
@@ -288,7 +339,6 @@ typedef struct {
         AudioQueuePause(aqData.mQueue);
         aqData.mPaused = TRUE;
     }
-    
 }
 
 #pragma mark - Internals
@@ -309,7 +359,7 @@ typedef struct {
 }
 
 - (AudioFileID)openAudioFile:(MusicFile*)file
-{    
+{
     NSString* fsFilename = [self fsFilenameFor:file];
     if (![self.fileManager fileExistsAtPath:[self fsFilenameFor:file]])
     {
@@ -490,6 +540,42 @@ void DeriveBufferSize(
     }
     
     *outNumPacketsToRead = *outBufferSize / maxPacketSize;           // 12
+}
+
+#pragma mark - AudioFileOpenWithCallbacks
+
+OSStatus NowBuffering_AudioFile_ReadProc(void* inClientData, SInt64 inPosition, UInt32 requestCount, void* buffer, UInt32* actualCount)
+{
+    MusicManager* musicManager = (MusicManager*)inClientData;
+    if (musicManager->nowBufferingData)
+    {
+        if (inPosition < [musicManager->nowBufferingData length])
+        {
+            *actualCount = requestCount;
+            if (inPosition + *actualCount > [musicManager->nowBufferingData length])
+            {
+                *actualCount = [musicManager->nowBufferingData length] - inPosition;
+            }
+            
+            memcpy(buffer, [musicManager->nowBufferingData bytes] + inPosition, *actualCount);
+            return noErr;
+        }
+    }
+    
+    *actualCount = 0;
+    return noErr;
+}
+
+SInt64 NowBuffering_AudioFile_GetSizeProc(void* inClientData)
+{
+    MusicManager* musicManager = (MusicManager*)inClientData;
+    if (musicManager->nowBufferingDataExpectedLength)
+    {
+        return musicManager->nowBufferingDataExpectedLength;
+    }
+    
+    
+    return EINVAL;
 }
 
 @end

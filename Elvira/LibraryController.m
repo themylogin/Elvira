@@ -196,7 +196,7 @@
         {
             cell.textLabel.textColor = [UIColor grayColor];
         }
-        if (state.state == Buffering)
+        if (state.state == Buffering || state.state == BufferingPlaying)
         {            
             UIView* view = [[UIView alloc] initWithFrame:cell.contentView.bounds];
             CAGradientLayer* gradient = [CAGradientLayer layer];
@@ -211,7 +211,7 @@
         if (state.state == Buffered)
         {
         }
-        if (state.state == Playing)
+        if (state.state == BufferingPlaying || state.state == BufferedPlaying)
         {
             cell.textLabel.textColor = [UIColor orangeColor];
         }
