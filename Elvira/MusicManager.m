@@ -107,6 +107,44 @@ typedef struct {
     [self doBuffering];
 }
 
+- (void)stopBufferingFile:(MusicFile*)file
+{
+    NSMutableArray* toRemove = [[NSMutableArray alloc] init];
+    for (MusicFile* f in self.bufferingQueue)
+    {
+        if ([f isEqualTo:file])
+        {
+            [toRemove addObject:f];
+        }
+    }
+    [self.bufferingQueue removeObjectsInArray:toRemove];
+    
+    if ([self.nowBufferingFile isEqualTo:file])
+    {
+        [self.nowBufferingConnection cancel];
+        [self connection:nowBufferingConnection didFailWithError:nil];
+    }
+    
+    [self change];
+}
+
+- (void)stopBufferingDirectory:(NSArray*)directory
+{
+    NSMutableArray* toRemove = [[NSMutableArray alloc] init];
+    for (MusicFile* f in self.bufferingQueue)
+    {
+        if ([[f.cwd componentsJoinedByString:@"@"] hasPrefix:[directory componentsJoinedByString:@"@"]])
+        {
+            [toRemove addObject:f];
+        }
+    }
+    
+    for (MusicFile* f in toRemove)
+    {
+        [self stopBufferingFile:f];
+    }
+}
+
 - (void)doBuffering
 {
     if (self.nowBufferingConnection)

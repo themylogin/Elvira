@@ -45,6 +45,10 @@
     UISwipeGestureRecognizer* bufferGestureRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(buffer:)];
     [bufferGestureRecognizer setDirection:UISwipeGestureRecognizerDirectionRight];
     [self.tableView addGestureRecognizer:bufferGestureRecognizer];
+    
+    UISwipeGestureRecognizer* stopBufferingGestureRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(stopBuffering:)];
+    [bufferGestureRecognizer setDirection:UISwipeGestureRecognizerDirectionLeft];
+    [self.tableView addGestureRecognizer:stopBufferingGestureRecognizer];
 }
 
 - (void)viewDidUnload
@@ -293,6 +297,23 @@
         else
         {
             [self.musicManager bufferFile:[self fileAtIndexPath:indexPath]];
+        }
+    }
+}
+
+
+- (void) stopBuffering:(UISwipeGestureRecognizer*)gestureRecognizer
+{
+    NSIndexPath* indexPath = [self.tableView indexPathForRowAtPoint:[gestureRecognizer locationInView:self.tableView]];
+    if (indexPath)
+    {
+        if (indexPath.row < self.directories.count)
+        {
+            [self.musicManager stopBufferingDirectory:[self.cwd arrayByAddingObject:[self.directories objectAtIndex:indexPath.row]]];
+        }
+        else
+        {
+            [self.musicManager stopBufferingFile:[self fileAtIndexPath:indexPath]];
         }
     }
 }

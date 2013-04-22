@@ -37,6 +37,8 @@ typedef union {
 - (id)init;
 
 - (void)bufferFile:(MusicFile*)file;
+- (void)stopBufferingFile:(MusicFile*)file;
+- (void)stopBufferingDirectory:(NSArray*)directory;
 
 - (MusicState)getStateOfFile:(MusicFile*)file;
 - (BOOL)willBufferAnythingInDirectory:(NSString*)directory locatedIn:(NSMutableArray*)cwd;
