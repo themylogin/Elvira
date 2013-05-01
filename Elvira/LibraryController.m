@@ -11,6 +11,12 @@
 
 #include "MusicFile.h"
 
+@interface LibraryController ()
+
+@property (nonatomic, retain) NSString* lastBufferDirectoryArgument;
+
+@end
+
 @implementation LibraryController
 
 @synthesize reloadButton;
@@ -22,6 +28,8 @@
 
 @synthesize directories;
 @synthesize files;
+
+@synthesize lastBufferDirectoryArgument;
 
 - (id)initWithNibName:(NSString*)nibNameOrNil bundle:(NSBundle*)nibBundleOrNil reloadButton:(UIBarButtonItem*)aReloadButton musicManager:(MusicManager*)aMusicManager
 {
@@ -231,68 +239,7 @@
     {
         if (indexPath.row < self.directories.count)
         {
-            NSMutableArray* filesToBuffer = [[NSMutableArray alloc] init];
-            
-            NSMutableArray* queue = [[NSMutableArray alloc] init];
-            [queue addObject:[self.cwd arrayByAddingObject:[self.directories objectAtIndex:indexPath.row]]];
-            while (queue.count > 0)
-            {
-                // get arg
-                NSMutableArray* arg = [queue objectAtIndex:0];
-                [queue removeObjectAtIndex:0];
-                
-                // chdir to cwd
-                NSDictionary* cwdDictionary = self.library;
-                for (NSString* element in arg)
-                {
-                    id object = [cwdDictionary objectForKey:element];
-                    if ([object isKindOfClass:[NSDictionary class]])
-                    {
-                        cwdDictionary = object;
-                    }
-                    else
-                    {
-                        return;
-                    }
-                }
-                
-                // fill directories and files
-                NSMutableArray* argDirectories = [[NSMutableArray alloc] initWithCapacity:[cwdDictionary count]];
-                NSMutableArray* argFiles = [[NSMutableArray alloc] initWithCapacity:[cwdDictionary count]];
-                for (NSString* key in cwdDictionary)
-                {
-                    if ([[cwdDictionary objectForKey:key] isKindOfClass:[NSDictionary class]])
-                    {
-                        [argDirectories addObject:key];
-                    }
-                    else
-                    {
-                        [argFiles addObject:key];
-                    }
-                }
-                [argDirectories sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
-                [argFiles sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
-                
-                // buffer all directories
-                for (NSString* directory in argDirectories)
-                {
-                    [queue addObject:[arg arrayByAddingObject:directory]];
-                }
-                // buffer all files
-                for (NSString* file in argFiles)
-                {
-                    [filesToBuffer addObject:[[MusicFile alloc] initWithFilename:file locatedIn:arg]];
-                    if (filesToBuffer.count > 128)
-                    {
-                        return;
-                    }
-                }
-            }
-            
-            for (MusicFile* file in filesToBuffer)
-            {
-                [self.musicManager bufferFile:file];
-            }
+            [self bufferDirectory:[self.directories objectAtIndex:indexPath.row] askConfirmation:TRUE];
         }
         else
         {
@@ -300,7 +247,6 @@
         }
     }
 }
-
 
 - (void) stopBuffering:(UISwipeGestureRecognizer*)gestureRecognizer
 {
@@ -318,11 +264,95 @@
     }
 }
 
+#pragma mark - UIAlertView Delegate
+- (void)alertView:(UIAlertView*)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex
+{
+    if (buttonIndex == 1)
+    {
+        [self bufferDirectory:self.lastBufferDirectoryArgument askConfirmation:FALSE];
+    }
+}
+
 #pragma mark - Internals
 
 - (MusicFile*) fileAtIndexPath:(NSIndexPath*)indexPath
 {
     return [[MusicFile alloc] initWithFilename:[self.files objectAtIndex:indexPath.row - self.directories.count] locatedIn:self.cwd];
+}
+
+- (void) bufferDirectory:(NSString*)directory askConfirmation:(BOOL)ask
+{
+    self.lastBufferDirectoryArgument = directory;
+    
+    NSMutableArray* filesToBuffer = [[NSMutableArray alloc] init];
+    
+    NSMutableArray* queue = [[NSMutableArray alloc] init];
+    [queue addObject:[self.cwd arrayByAddingObject:directory]];
+    while (queue.count > 0)
+    {
+        // get arg
+        NSMutableArray* arg = [queue objectAtIndex:0];
+        [queue removeObjectAtIndex:0];
+        
+        // chdir to cwd
+        NSDictionary* cwdDictionary = self.library;
+        for (NSString* element in arg)
+        {
+            id object = [cwdDictionary objectForKey:element];
+            if ([object isKindOfClass:[NSDictionary class]])
+            {
+                cwdDictionary = object;
+            }
+            else
+            {
+                return;
+            }
+        }
+        
+        // fill directories and files
+        NSMutableArray* argDirectories = [[NSMutableArray alloc] initWithCapacity:[cwdDictionary count]];
+        NSMutableArray* argFiles = [[NSMutableArray alloc] initWithCapacity:[cwdDictionary count]];
+        for (NSString* key in cwdDictionary)
+        {
+            if ([[cwdDictionary objectForKey:key] isKindOfClass:[NSDictionary class]])
+            {
+                [argDirectories addObject:key];
+            }
+            else
+            {
+                [argFiles addObject:key];
+            }
+        }
+        [argDirectories sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
+        [argFiles sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
+        
+        // buffer all directories
+        for (NSString* directory in argDirectories)
+        {
+            [queue addObject:[arg arrayByAddingObject:directory]];
+        }
+        // buffer all files
+        for (NSString* file in argFiles)
+        {
+            [filesToBuffer addObject:[[MusicFile alloc] initWithFilename:file locatedIn:arg]];
+            if (filesToBuffer.count > 128 && ask)
+            {
+                UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Вопрос"
+                                                                message:[[NSString alloc] initWithFormat:@"Каталог «%@» содержит много элементов. Действительно буферизовать?", directory]
+                                                               delegate:self
+                                                      cancelButtonTitle:@"Нет"
+                                                      otherButtonTitles:@"Да", nil];
+                [alert show];
+                
+                return;
+            }
+        }
+    }
+    
+    for (MusicFile* file in filesToBuffer)
+    {
+        [self.musicManager bufferFile:file];
+    }
 }
 
 @end
