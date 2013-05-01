@@ -453,7 +453,7 @@ typedef struct {
                 NSURLResponse* response = nil;
                 [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
                 
-                if (error || !response || [(NSHTTPURLResponse*)response statusCode] != 200)
+                if (error || [(NSHTTPURLResponse*)response statusCode] != 200)
                 {
                     [self.scrobbleQueue addObject:scrobble];
                 }

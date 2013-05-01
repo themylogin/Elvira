@@ -60,11 +60,21 @@
         NSURLResponse* response = nil;
         NSData* data = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
         
-        if (error)
+        if (error || [(NSHTTPURLResponse*)response statusCode] != 200)
         {
+            NSString* errorDescription;
+            if (error)
+            {
+                errorDescription = [error localizedDescription];
+            }
+            else
+            {
+                errorDescription = [[NSString alloc] initWithFormat:@"HTTP %d", [(NSHTTPURLResponse*)response statusCode], nil];
+            }
+            
             dispatch_async(dispatch_get_main_queue(), ^{                
                 UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Ошибка обновления библиотеки"
-                                                                message:[error localizedDescription]
+                                                                message:errorDescription
                                                                delegate:nil
                                                       cancelButtonTitle:@"ОК"
                                                       otherButtonTitles:nil];
