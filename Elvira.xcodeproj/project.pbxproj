@@ -50,6 +50,7 @@
 		84BCEF33173135B200947C5C /* IASKSlider.m in Sources */ = {isa = PBXBuildFile; fileRef = 84BCEF23173135B200947C5C /* IASKSlider.m */; };
 		84BCEF34173135B200947C5C /* IASKSwitch.m in Sources */ = {isa = PBXBuildFile; fileRef = 84BCEF25173135B200947C5C /* IASKSwitch.m */; };
 		84BCEF35173135B200947C5C /* IASKTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 84BCEF27173135B200947C5C /* IASKTextField.m */; };
+		84BCEF66173136B000947C5C /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84BCEF65173136B000947C5C /* MessageUI.framework */; };
 		84F5D056171D2D5200969289 /* Pause.png in Resources */ = {isa = PBXBuildFile; fileRef = 84F5D055171D2D5200969289 /* Pause.png */; };
 /* End PBXBuildFile section */
 
@@ -134,6 +135,7 @@
 		84BCEF25173135B200947C5C /* IASKSwitch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IASKSwitch.m; sourceTree = "<group>"; };
 		84BCEF26173135B200947C5C /* IASKTextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IASKTextField.h; sourceTree = "<group>"; };
 		84BCEF27173135B200947C5C /* IASKTextField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IASKTextField.m; sourceTree = "<group>"; };
+		84BCEF65173136B000947C5C /* MessageUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MessageUI.framework; path = System/Library/Frameworks/MessageUI.framework; sourceTree = SDKROOT; };
 		84F5D055171D2D5200969289 /* Pause.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Pause.png; path = Elvira/Pause.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -142,6 +144,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				84BCEF66173136B000947C5C /* MessageUI.framework in Frameworks */,
 				73E19DB415E2A9C500013F77 /* Foundation.framework in Frameworks */,
 				73E19DB215E2A9B300013F77 /* UIKit.framework in Frameworks */,
 				73C66D3D1577FD05004CBD40 /* AVFoundation.framework in Frameworks */,
@@ -167,6 +170,7 @@
 		6827163F154DAE2A00558E25 = {
 			isa = PBXGroup;
 			children = (
+				84BCEF65173136B000947C5C /* MessageUI.framework */,
 				847B301D171C463300FF43B6 /* Default-568h@2x.png */,
 				73E19DB315E2A9C500013F77 /* Foundation.framework */,
 				73E19DB115E2A9B300013F77 /* UIKit.framework */,
