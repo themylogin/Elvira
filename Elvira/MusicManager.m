@@ -9,6 +9,7 @@
 #import "MusicManager.h"
 
 #import <AVFoundation/AVAudioSession.h>
+#import <CommonCrypto/CommonDigest.h>
 
 static const int kNumberBuffers = 1;
 typedef struct {
@@ -51,6 +52,9 @@ typedef struct {
 
 @property (nonatomic)         AQPlayerState     aqData;
 
+@property (nonatomic)         NSMutableArray*   scrobbleQueue;
+@property (nonatomic)         bool              scrobbleLoopIsRunning;
+
 @end
 
 @implementation MusicManager
@@ -89,6 +93,9 @@ typedef struct {
     self.nowPlayingFile = nil;
     self.nowPlayingTotal = 0;
     self.nowPlayingElapsed = 0;
+    
+    self.scrobbleQueue = [[NSMutableArray alloc] init];
+    self.scrobbleLoopIsRunning = FALSE;
     
     // audio queue
     aqData.musicManager = self;
@@ -168,27 +175,8 @@ typedef struct {
         return;
     }
     
-    NSMutableString* escaped = [NSMutableString stringWithString:[[self libraryFilenameFor:self.nowBufferingFile] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-    [escaped replaceOccurrencesOfString:@"$" withString:@"%24" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
-    [escaped replaceOccurrencesOfString:@"&" withString:@"%26" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
-    [escaped replaceOccurrencesOfString:@"+" withString:@"%2B" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
-    [escaped replaceOccurrencesOfString:@"," withString:@"%2C" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
-    [escaped replaceOccurrencesOfString:@"/" withString:@"%2F" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
-    [escaped replaceOccurrencesOfString:@":" withString:@"%3A" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
-    [escaped replaceOccurrencesOfString:@";" withString:@"%3B" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
-    [escaped replaceOccurrencesOfString:@"=" withString:@"%3D" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
-    [escaped replaceOccurrencesOfString:@"?" withString:@"%3F" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
-    [escaped replaceOccurrencesOfString:@"@" withString:@"%40" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
-    [escaped replaceOccurrencesOfString:@" " withString:@"%20" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
-    [escaped replaceOccurrencesOfString:@"\t" withString:@"%09" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
-    [escaped replaceOccurrencesOfString:@"#" withString:@"%23" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
-    [escaped replaceOccurrencesOfString:@"<" withString:@"%3C" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
-    [escaped replaceOccurrencesOfString:@">" withString:@"%3E" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
-    [escaped replaceOccurrencesOfString:@"\"" withString:@"%22" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
-    [escaped replaceOccurrencesOfString:@"\n" withString:@"%0A" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
-    
     self.nowBufferingDataExpectedLength = 0;
-    self.nowBufferingConnection = [[NSURLConnection alloc] initWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[[[[NSUserDefaults standardUserDefaults] stringForKey:@"player_url"] stringByAppendingString:@"/index/get_file?file="] stringByAppendingString:escaped]] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:60.0] delegate:self];
+    self.nowBufferingConnection = [[NSURLConnection alloc] initWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[[[[NSUserDefaults standardUserDefaults] stringForKey:@"player_url"] stringByAppendingString:@"/index/get_file?file="] stringByAppendingString:[self urlFor:nowPlayingFile]]] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:60.0] delegate:self];
 }
 
 - (void)connection:(NSURLConnection*)connection didFailWithError:(NSError *)error
@@ -421,6 +409,60 @@ typedef struct {
     }
 }
 
+#pragma mark - Consuming
+
+- (void)consume:(MusicFile*)file
+{
+    [self.scrobbleQueue addObject:[[NSArray alloc] initWithObjects:file, [NSDate date], nil]];
+    
+    NSString* lastfmUsername = [[NSUserDefaults standardUserDefaults] stringForKey:@"lastfm_username"];
+    NSString* lastfmPassword = [[NSUserDefaults standardUserDefaults] stringForKey:@"lastfm_password"];
+    if (![lastfmUsername isEqualToString:@""] && !self.scrobbleLoopIsRunning)
+    {
+        NSMutableArray* queueCopy = [[NSMutableArray alloc] initWithArray:self.scrobbleQueue];
+        [self.scrobbleQueue removeAllObjects];
+        self.scrobbleLoopIsRunning = true;
+        
+        
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+            while (queueCopy.count > 0)
+            {
+                NSArray* scrobble = [queueCopy objectAtIndex:0];
+                [queueCopy removeObjectAtIndex:0];
+                
+                const char* c = [lastfmPassword UTF8String];
+                unsigned char result[CC_MD5_DIGEST_LENGTH];
+                CC_MD5(c, strlen(c), result);
+                
+                NSMutableString* lastfmPasswordHash = [NSMutableString stringWithCapacity:CC_MD5_DIGEST_LENGTH * 2];
+                for (int i = 0; i < CC_MD5_DIGEST_LENGTH; i++)
+                {
+                    [lastfmPasswordHash appendFormat:@"%02x", result[i]];
+                }
+                
+                NSURL* url = [NSURL URLWithString:[[NSString alloc] initWithFormat:@"%@/index/scrobble?file=%@&timestamp=%ld&username=%@&password_hash=%@",
+                                                   [[NSUserDefaults standardUserDefaults] stringForKey:@"player_url"],
+                                                   [self urlFor:[scrobble objectAtIndex:0]],
+                                                   (time_t)[[scrobble objectAtIndex:1] timeIntervalSince1970],
+                                                   lastfmUsername,
+                                                   lastfmPasswordHash,
+                                                   nil]];
+                NSURLRequest* request = [NSURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:120.0];
+            
+                NSError* error = nil;
+                NSURLResponse* response = nil;
+                [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+                
+                if (error)
+                {
+                    [self.scrobbleQueue addObject:scrobble];
+                }
+            }            
+            self.scrobbleLoopIsRunning = false;
+        });
+    }
+}
+
 #pragma mark - Internals
 
 - (void)change
@@ -436,6 +478,29 @@ typedef struct {
 - (NSString*)libraryFilenameFor:(MusicFile*)file
 {
     return [[[file.cwd componentsJoinedByString:@"/"] stringByAppendingString:@"/"] stringByAppendingString:file.filename];
+}
+
+- (NSString*)urlFor:(MusicFile*)file
+{
+    NSMutableString* escaped = [NSMutableString stringWithString:[[@"/" stringByAppendingString:[self libraryFilenameFor:file]] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+    [escaped replaceOccurrencesOfString:@"$" withString:@"%24" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
+    [escaped replaceOccurrencesOfString:@"&" withString:@"%26" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
+    [escaped replaceOccurrencesOfString:@"+" withString:@"%2B" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
+    [escaped replaceOccurrencesOfString:@"," withString:@"%2C" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
+    [escaped replaceOccurrencesOfString:@"/" withString:@"%2F" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
+    [escaped replaceOccurrencesOfString:@":" withString:@"%3A" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
+    [escaped replaceOccurrencesOfString:@";" withString:@"%3B" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
+    [escaped replaceOccurrencesOfString:@"=" withString:@"%3D" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
+    [escaped replaceOccurrencesOfString:@"?" withString:@"%3F" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
+    [escaped replaceOccurrencesOfString:@"@" withString:@"%40" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
+    [escaped replaceOccurrencesOfString:@" " withString:@"%20" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
+    [escaped replaceOccurrencesOfString:@"\t" withString:@"%09" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
+    [escaped replaceOccurrencesOfString:@"#" withString:@"%23" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
+    [escaped replaceOccurrencesOfString:@"<" withString:@"%3C" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
+    [escaped replaceOccurrencesOfString:@">" withString:@"%3E" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
+    [escaped replaceOccurrencesOfString:@"\"" withString:@"%22" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
+    [escaped replaceOccurrencesOfString:@"\n" withString:@"%0A" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
+    return escaped;
 }
 
 - (AudioFileID)openAudioFile:(MusicFile*)file
@@ -544,6 +609,7 @@ void HandleOutputBuffer(void *aqData, AudioQueueRef inAQ, AudioQueueBufferRef in
         if (pAqData->mConsumedPackets >= pAqData->mPacketCount / 2 && !pAqData->mConsumed)
         {
             pAqData->mConsumed = true;
+            [pMusicManager consume:pMusicManager.nowPlayingFile];
         }
     }
     else
