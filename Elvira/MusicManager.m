@@ -185,7 +185,7 @@ typedef struct {
     [escaped replaceOccurrencesOfString:@"\n" withString:@"%0A" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [escaped length])];
     
     self.nowBufferingDataExpectedLength = 0;
-    self.nowBufferingConnection = [[NSURLConnection alloc] initWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[@"http://player.thelogin.ru/index/get_file?file=" stringByAppendingString:escaped]] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:60.0] delegate:self];
+    self.nowBufferingConnection = [[NSURLConnection alloc] initWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[[[[NSUserDefaults standardUserDefaults] stringForKey:@"player_url"] stringByAppendingString:@"/index/get_file?file="] stringByAppendingString:escaped]] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:60.0] delegate:self];
 }
 
 - (void)connection:(NSURLConnection*)connection didFailWithError:(NSError *)error
@@ -233,6 +233,12 @@ typedef struct {
     {
         AudioFileClose(aqData.mAudioFile);
         aqData.mAudioFile = [self openAudioFile:self.nowPlayingFile];
+        
+        UInt32 propertySize;
+        propertySize = sizeof(aqData.mDuration);
+        AudioFileGetProperty(aqData.mAudioFile, kAudioFilePropertyEstimatedDuration, &propertySize, &aqData.mDuration);        
+        self.nowPlayingTotal = aqData.mDuration;
+        [self change];
     }
     
     self.nowBufferingFile = nil;
