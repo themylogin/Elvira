@@ -16,6 +16,7 @@
 {
     // Override point for customization after application launch.
     [[UIApplication sharedApplication] setIdleTimerDisabled:YES];
+    [self registerDefaultsFromSettingsBundle];
     return YES;
 }
 							
@@ -44,6 +45,32 @@
 - (void)applicationWillTerminate:(UIApplication *)application
 {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+}
+
+// Why am I supposed to do this?
+- (void)registerDefaultsFromSettingsBundle
+{
+    NSString* settingsBundle = [[NSBundle mainBundle] pathForResource:@"Settings" ofType:@"bundle"];
+    if (!settingsBundle)
+    {
+        return;
+    }
+    
+    NSDictionary* settings = [NSDictionary dictionaryWithContentsOfFile:[settingsBundle stringByAppendingPathComponent:@"Root.plist"]];
+    NSArray* preferences = [settings objectForKey:@"PreferenceSpecifiers"];
+    
+    NSMutableDictionary* defaultsToRegister = [[NSMutableDictionary alloc] initWithCapacity:[preferences count]];
+    for (NSDictionary* prefSpecification in preferences)
+    {
+        NSString* key = [prefSpecification objectForKey:@"Key"];
+        if (key)
+        {
+            [defaultsToRegister setObject:[prefSpecification objectForKey:@"DefaultValue"] forKey:key];
+        }
+    }
+    
+    [[NSUserDefaults standardUserDefaults] registerDefaults:defaultsToRegister];
+    [defaultsToRegister release];
 }
 
 @end

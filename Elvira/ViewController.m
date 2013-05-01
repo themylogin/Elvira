@@ -52,13 +52,28 @@
 - (void)loadLibrary
 {
     [self.reloadButton setEnabled:false];
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-        NSURL* url = [NSURL URLWithString:@"http://player.thelogin.ru/index/list_directory_files_multidimensional?directory="];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{        
+        NSURL* url = [NSURL URLWithString:[[[NSUserDefaults standardUserDefaults] stringForKey:@"player_url"] stringByAppendingString:@"/index/list_directory_files_multidimensional?directory="]];
         NSURLRequest* request = [NSURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:120.0];
         
         NSError* error = nil;
         NSURLResponse* response = nil;
         NSData* data = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+        
+        if (error)
+        {
+            dispatch_async(dispatch_get_main_queue(), ^{                
+                UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Ошибка обновления библиотеки"
+                                                                message:[error localizedDescription]
+                                                               delegate:nil
+                                                      cancelButtonTitle:@"ОК"
+                                                      otherButtonTitles:nil];
+                [alert show];
+                
+                [self.reloadButton setEnabled:true];
+            });
+            return;
+        }
         
         JSONDecoder* jsonKitDecoder = [JSONDecoder decoder];
         NSDictionary* library = [jsonKitDecoder objectWithData:data];

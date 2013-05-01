@@ -36,6 +36,7 @@
 		73E19DB215E2A9B300013F77 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73E19DB115E2A9B300013F77 /* UIKit.framework */; };
 		73E19DB415E2A9C500013F77 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73E19DB315E2A9C500013F77 /* Foundation.framework */; };
 		847B301E171C463300FF43B6 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 847B301D171C463300FF43B6 /* Default-568h@2x.png */; };
+		84BCEF681731391300947C5C /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 84BCEF671731391300947C5C /* Settings.bundle */; };
 		84F5D056171D2D5200969289 /* Pause.png in Resources */ = {isa = PBXBuildFile; fileRef = 84F5D055171D2D5200969289 /* Pause.png */; };
 /* End PBXBuildFile section */
 
@@ -92,6 +93,7 @@
 		73E19DB315E2A9C500013F77 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		847B301D171C463300FF43B6 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		84BCEF65173136B000947C5C /* MessageUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MessageUI.framework; path = System/Library/Frameworks/MessageUI.framework; sourceTree = SDKROOT; };
+		84BCEF671731391300947C5C /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		84F5D055171D2D5200969289 /* Pause.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Pause.png; path = Elvira/Pause.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -125,6 +127,7 @@
 		6827163F154DAE2A00558E25 = {
 			isa = PBXGroup;
 			children = (
+				84BCEF671731391300947C5C /* Settings.bundle */,
 				84BCEF65173136B000947C5C /* MessageUI.framework */,
 				847B301D171C463300FF43B6 /* Default-568h@2x.png */,
 				73E19DB315E2A9C500013F77 /* Foundation.framework */,
@@ -317,6 +320,7 @@
 				73C66D54157809C6004CBD40 /* Icon-Small.png in Resources */,
 				847B301E171C463300FF43B6 /* Default-568h@2x.png in Resources */,
 				84F5D056171D2D5200969289 /* Pause.png in Resources */,
+				84BCEF681731391300947C5C /* Settings.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
