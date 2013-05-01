@@ -29,6 +29,9 @@ typedef struct {
     
     Float64                       mDuration;
     Float64                       mElapsed;
+    
+    UInt64                        mConsumedPackets;
+    bool                          mConsumed;
 } AQPlayerState;
 
 @interface MusicManager ()
@@ -234,9 +237,11 @@ typedef struct {
         AudioFileClose(aqData.mAudioFile);
         aqData.mAudioFile = [self openAudioFile:self.nowPlayingFile];
         
-        UInt32 propertySize;
+        UInt32 propertySize;        
+        propertySize = sizeof(aqData.mPacketCount);
+        AudioFileGetProperty(aqData.mAudioFile, kAudioFilePropertyAudioDataPacketCount, &propertySize, &aqData.mPacketCount);
         propertySize = sizeof(aqData.mDuration);
-        AudioFileGetProperty(aqData.mAudioFile, kAudioFilePropertyEstimatedDuration, &propertySize, &aqData.mDuration);        
+        AudioFileGetProperty(aqData.mAudioFile, kAudioFilePropertyEstimatedDuration, &propertySize, &aqData.mDuration);
         self.nowPlayingTotal = aqData.mDuration;
         [self change];
     }
@@ -452,6 +457,8 @@ typedef struct {
 {
     aqData.mAudioFile = audioFile;
     aqData.mCurrentPacket = 0;
+    aqData.mConsumedPackets = 0;
+    aqData.mConsumed = 0;
     
     UInt32 propertySize;
     // get length
@@ -532,6 +539,12 @@ void HandleOutputBuffer(void *aqData, AudioQueueRef inAQ, AudioQueueBufferRef in
         inBuffer->mAudioDataByteSize = numBytesReadFromFile;
         AudioQueueEnqueueBuffer(pAqData->mQueue, inBuffer, (pAqData->mPacketDescs ? numPackets : 0), pAqData->mPacketDescs);
         pAqData->mCurrentPacket += numPackets;
+        
+        pAqData->mConsumedPackets += numPackets;
+        if (pAqData->mConsumedPackets >= pAqData->mPacketCount / 2 && !pAqData->mConsumed)
+        {
+            pAqData->mConsumed = true;
+        }
     }
     else
     {        
