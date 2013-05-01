@@ -176,7 +176,7 @@ typedef struct {
     }
     
     self.nowBufferingDataExpectedLength = 0;
-    self.nowBufferingConnection = [[NSURLConnection alloc] initWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[[[[NSUserDefaults standardUserDefaults] stringForKey:@"player_url"] stringByAppendingString:@"/index/get_file?file="] stringByAppendingString:[self urlFor:nowPlayingFile]]] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:60.0] delegate:self];
+    self.nowBufferingConnection = [[NSURLConnection alloc] initWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[[[[NSUserDefaults standardUserDefaults] stringForKey:@"player_url"] stringByAppendingString:@"/index/get_file?file="] stringByAppendingString:[self urlFor:self.nowBufferingFile]]] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:60.0] delegate:self];
 }
 
 - (void)connection:(NSURLConnection*)connection didFailWithError:(NSError *)error
@@ -453,7 +453,7 @@ typedef struct {
                 NSURLResponse* response = nil;
                 [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
                 
-                if (error)
+                if (error || !response || [(NSHTTPURLResponse*)response statusCode] != 200)
                 {
                     [self.scrobbleQueue addObject:scrobble];
                 }
