@@ -181,6 +181,10 @@ typedef struct {
 
 - (void)connection:(NSURLConnection*)connection didFailWithError:(NSError *)error
 {
+    [self.nowBufferingConnection release];
+    [self.nowBufferingData release];
+    [self.nowBufferingFile release];
+    
     self.nowBufferingFile = nil;
     self.nowBufferingConnection = nil;
     self.nowBufferingDataExpectedLength = 0;
@@ -192,7 +196,11 @@ typedef struct {
 - (void)connection:(NSURLConnection*)connection didReceiveResponse:(NSURLResponse *)response
 {
     if ([(NSHTTPURLResponse*)response statusCode] != 200)
-    {
+    {        
+        [self.nowBufferingConnection release];
+        [self.nowBufferingData release];
+        [self.nowBufferingFile release];
+        
         self.nowBufferingFile = nil;
         self.nowBufferingConnection = nil;
         self.nowBufferingDataExpectedLength = 0;
@@ -233,6 +241,10 @@ typedef struct {
         self.nowPlayingTotal = aqData.mDuration;
         [self change];
     }
+    
+    [self.nowBufferingConnection release];
+    [self.nowBufferingData release];
+    [self.nowBufferingFile release];
     
     self.nowBufferingFile = nil;
     self.nowBufferingConnection = nil;
